@@ -4404,6 +4404,7 @@ statusclear: async () => {
 },
 
 translate: async () => {
+  if (!isOwner) return reply("❌ Owner only")
   try {
     let targetLang
     let text
@@ -4436,59 +4437,68 @@ ${PREFIX}tr es`
       )
     }
 
-    // 🌐 Language map
-    const langMap = {
-      en: "en",
-      fr: "fr",
-      es: "es",
-      de: "de",
-      it: "it",
-      pt: "pt",
-      ru: "ru",
-      ar: "ar",
-      hi: "hi",
-      zh: "zh-CN",
-      ja: "ja",
-      ko: "ko",
-      tr: "tr",
-      nl: "nl",
-      el: "el",
-      pl: "pl",
-      sv: "sv",
-      uk: "uk",
-      he: "he",
-      fa: "fa",
-      th: "th",
-      vi: "vi",
-      id: "id",
-      ms: "ms",
-      ig: "ig",
-      yo: "yo",
-      ha: "ha",
-      sw: "sw",
-      zu: "zu",
-      xh: "xh",
-      af: "af",
-      am: "am",
-      so: "so",
-      bn: "bn",
-      ur: "ur",
-      ta: "ta",
-      te: "te",
-      gu: "gu",
-      pa: "pa",
-      mr: "mr",
-      ro: "ro",
-      cs: "cs",
-      da: "da",
-      fi: "fi",
-      hu: "hu",
-      no: "no",
-      sk: "sk",
-      tl: "tl",
-      la: "la",
-      eo: "eo"
-    }
+    // 🌐 Expanded language aliases
+const langMap = {
+  // Major global languages
+  english: "en", en: "en",
+  french: "fr", fr: "fr",
+  spanish: "es", es: "es",
+  german: "de", de: "de",
+  italian: "it", it: "it",
+  portuguese: "pt", pt: "pt",
+  russian: "ru", ru: "ru",
+  arabic: "ar", ar: "ar",
+  hindi: "hi", hi: "hi",
+  chinese: "zh-cn", zh: "zh-cn", chinese: "zh-cn",
+  japanese: "ja", ja: "ja",
+  korean: "ko", ko: "ko",
+  turkish: "tr", tr: "tr",
+  dutch: "nl", nl: "nl",
+  greek: "el", el: "el",
+  polish: "pl", pl: "pl",
+  swedish: "sv", sv: "sv",
+  ukrainian: "uk", uk: "uk",
+  hebrew: "iw", he: "iw", hebrew: "iw",
+  persian: "fa", fa: "fa",
+  thai: "th", th: "th",
+  vietnamese: "vi", vi: "vi",
+  indonesian: "id", id: "id",
+  malay: "ms", ms: "ms",
+
+  // African languages
+  igbo: "ig", ig: "ig",
+  yoruba: "yo", yo: "yo",
+  hausa: "ha", ha: "ha",
+  swahili: "sw", sw: "sw",
+  zulu: "zu", zu: "zu",
+  xhosa: "xh", xh: "xh",
+  afrikaans: "af", af: "af",
+  amharic: "am", am: "am",
+  somali: "so", so: "so",
+
+  // South Asian
+  bengali: "bn", bn: "bn",
+  urdu: "ur", ur: "ur",
+  tamil: "ta", ta: "ta",
+  telugu: "te", te: "te",
+  gujarati: "gu", gu: "gu",
+  punjabi: "pa", pa: "pa",
+  marathi: "mr", mr: "mr",
+
+  // European
+  romanian: "ro", ro: "ro",
+  czech: "cs", cs: "cs",
+  danish: "da", da: "da",
+  finnish: "fi", fi: "fi",
+  hungarian: "hu", hu: "hu",
+  norwegian: "no", no: "no",
+  slovak: "sk", sk: "sk",
+
+  // Extra
+  filipino: "tl", tagalog: "tl", tl: "tl",
+  latin: "la", la: "la",
+  esperanto: "eo", eo: "eo"
+}
 
     const lang = langMap[targetLang]
 
@@ -4528,8 +4538,12 @@ ${text}
 ${translated}
 
 🌐 Language:
-${targetLang.toUpperCase()}`
+${targetLang.toUpperCase()}
+
+> 🔎 Powered by Smart Translate`
     )
+    
+    
 
   } catch (e) {
     console.log("TRANSLATE ERROR:", e)
@@ -4546,6 +4560,7 @@ Possible causes:
 },
 
 detect: async () => {
+  if (!isOwner) return reply("❌ Owner only")
   try {
     let text = q
 
