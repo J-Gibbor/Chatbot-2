@@ -85,7 +85,7 @@ function formatRuntime(ms) {
 // ================= DM AUTO REPLY SYSTEM (OWNER ONLY CONTROL) =================
 
 global.DM_AUTO_REPLY = global.DM_AUTO_REPLY || {
-  enabled: true,
+  enabled: false,
 
 words: {
   hello: ["Hello 👋", "Hi 😄", "Hey there 😊", "Yo 👋", "Hey buddy 😎"],
@@ -465,6 +465,11 @@ const PREMIUM_MENU_SECTIONS = {
     "ping",
     "test",
     "nettest",
+  ],
+  
+  "🌐 TRANSLATE / DECTECT LANGUAGES":[
+    "translate",
+    "detect",
   ]
 }
 
@@ -573,7 +578,11 @@ delreply: "🗑️ 𝙍𝙚𝙢𝙤𝙫𝙚 𝙆𝙚𝙮𝙬𝙤𝙧𝙙 𝙍�
   ping: "🏓 𝘾𝙝𝙚𝙘𝙠 𝙨𝙥𝙚𝙚𝙙",
   runtime: "⏱️ 𝙎𝙚𝙚 𝙗𝙤𝙩 𝙪𝙥𝙩𝙞𝙢𝙚",
   test: "🧪 𝙏𝙚𝙨𝙩 𝘽𝙤𝙩 𝙍𝙚𝙨𝙥𝙤𝙣𝙨𝙚",
-nettest: "🌐 𝘾𝙝𝙚𝙘𝙠 𝙄𝙣𝙩𝙚𝙧𝙣𝙚𝙩 𝘾𝙤𝙣𝙣𝙚𝙘𝙩𝙞𝙤𝙣"
+nettest: "🌐 𝘾𝙝𝙚𝙘𝙠 𝙄𝙣𝙩𝙚𝙧𝙣𝙚𝙩 𝘾𝙤𝙣𝙣𝙚𝙘𝙩𝙞𝙤𝙣",
+
+  // 🌍 TRANSLATE / DETECT LANGUAGE
+translate:"🌐 𝙏𝙧𝙖𝙣𝙨𝙡𝙖𝙩𝙚 𝘼𝙣𝙮 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚 (🇬🇧 en — English, 🇫🇷 fr — French, 🇪🇸 es — Spanish, 🇩🇪 de — German, 🇮🇹 it — Italian, 🇵🇹 pt — Portuguese, 🇷🇺 ru — Russian, 🇸🇦 ar — Arabic, 🇮🇳 hi — Hindi, 🇨🇳 zh — Chinese, 🇯🇵 ja — Japanese, 🇰🇷 ko — Korean, 🇹🇷 tr — Turkish, 🇳🇱 nl — Dutch, 🇬🇷 el — Greek, 🇵🇱 pl — Polish, 🇸🇪 sv — Swedish, 🇺🇦 uk — Ukrainian, 🇮🇱 he — Hebrew, 🇮🇷 fa — Persian, 🇹🇭 th — Thai, 🇻🇳 vi — Vietnamese, 🇮🇩 id — Indonesian, 🇲🇾 ms — Malay, 🇳🇬 ig — Igbo, 🇳🇬 yo — Yoruba, 🇳🇬 ha — Hausa, 🌍 sw — Swahili, 🇿🇦 zu — Zulu, 🇿🇦 xh — Xhosa, 🇿🇦 af — Afrikaans, 🇪🇹 am — Amharic, 🇸🇴 so — Somali, 🇧🇩 bn — Bengali, 🇵🇰 ur — Urdu, 🇮🇳 ta — Tamil, 🇮🇳 te — Telugu, 🇮🇳 gu — Gujarati, 🇮🇳 pa — Punjabi, 🇮🇳 mr — Marathi, 🇷🇴 ro — Romanian, 🇨🇿 cs Czech, 🇩🇰 da — Danish, 🇫🇮 fi — Finnish, 🇭🇺 hu — Hungarian, 🇳🇴 no — Norwegian, 🇸🇰 sk — Slovak, 🇵🇭 tl — Filipino / Tagalog, la — Latin, eo — Esperanto,)",
+detect:"🧠 𝘿𝙚𝙩𝙚𝙘𝙩 𝙈𝙚𝙨𝙨𝙖𝙜𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚",
 }
 
 
@@ -1020,26 +1029,50 @@ if (
   global.DM_AUTO_REPLY.enabled
 ) {
   try {
-    // ❌ Ignore commands
+    // ❌ Ignore bot commands
     if (!body.startsWith(PREFIX)) {
 
-      global.LAST_DM_REPLY =
-        global.LAST_DM_REPLY || {}
+      global.LAST_DM_REPLY = global.LAST_DM_REPLY || {}
 
       const now = Date.now()
-      const cooldown = 15000 // 15s anti-spam
+
+      // ⏱️ Human-like cooldown (8s–20s random)
+      const cooldown =
+        Math.floor(Math.random() * 12000) + 8000
 
       if (
         !global.LAST_DM_REPLY[sender] ||
         now - global.LAST_DM_REPLY[sender] > cooldown
       ) {
+
+        // 🧠 Simulate "typing..."
+        await sock.sendPresenceUpdate(
+          "composing",
+          jid
+        )
+
+        // ⏳ Random typing delay (2s–5s)
+        const typingDelay =
+          Math.floor(Math.random() * 3000) + 2000
+
+        await new Promise(resolve =>
+          setTimeout(resolve, typingDelay)
+        )
+
+        // 💬 Smarter contextual reply
         const autoReply =
-          getSmartAutoReply(body)
+          getHumanAutoReply(body)
 
         await sock.sendMessage(
           jid,
           { text: autoReply },
           { quoted: msg }
+        )
+
+        // 📴 Stop typing
+        await sock.sendPresenceUpdate(
+          "paused",
+          jid
         )
 
         global.LAST_DM_REPLY[sender] = now
@@ -1048,7 +1081,7 @@ if (
 
   } catch (e) {
     console.log(
-      "Smart DM Auto Reply Error:",
+      "Human DM Auto Reply Error:",
       e
     )
   }
@@ -1300,6 +1333,8 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   delreply: "🗑️",
 
   default: "⚡",
+  translate: "🌍",
+  detect: "🧠",
 
   warn: "⚠️",
   warnlist: "📋",
@@ -4366,6 +4401,234 @@ statusclear: async () => {
   return reply("🧹 All saved statuses cleared")
 },
 
+translate: async () => {
+  if (!q) {
+    return reply(
+`🌍 *Translate Command*
+
+Usage:
+!translate <lang> <text>
+
+Examples:
+!tr fr Hello my friend
+!tr es How are you?
+!tr ig Good morning
+
+Or reply to a message:
+!tr fr`
+    )
+  }
+
+  try {
+    let targetLang
+    let text
+
+    // If replying to a message
+    const quotedText =
+      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
+      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.extendedTextMessage?.text
+
+    if (quotedText) {
+      const args = q.trim().split(" ")
+      targetLang = args[0]?.toLowerCase()
+      text = quotedText
+    } else {
+      const args = q.trim().split(" ")
+      targetLang = args.shift()?.toLowerCase()
+      text = args.join(" ")
+    }
+
+    if (!targetLang || !text) {
+      return reply("❌ Example: .tr fr Hello world")
+    }
+
+    // Common language aliases
+    const langMap = {
+      english: "en",
+      en: "en",
+      french: "fr",
+      fr: "fr",
+      spanish: "es",
+      es: "es",
+      german: "de",
+      de: "de",
+      italian: "it",
+      it: "it",
+      portuguese: "pt",
+      pt: "pt",
+      russian: "ru",
+      ru: "ru",
+      arabic: "ar",
+      ar: "ar",
+      hindi: "hi",
+      hi: "hi",
+      chinese: "zh-cn",
+      zh: "zh-cn",
+      japanese: "ja",
+      ja: "ja",
+      korean: "ko",
+      ko: "ko",
+      igbo: "ig",
+      ig: "ig",
+      yoruba: "yo",
+      yo: "yo",
+      hausa: "ha",
+      ha: "ha"
+    }
+
+    const lang = langMap[targetLang]
+    if (!lang) return reply("❌ Unsupported language code")
+
+    await react(sock, jid, msg.key, "🌍")
+
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`
+
+    const res = await fetch(url)
+    const data = await res.json()
+
+    if (!data || !data[0]) {
+      return reply("❌ Translation failed")
+    }
+
+    const translated = data[0].map(item => item[0]).join("")
+
+    reply(
+`🌍 *Translation Result*
+
+📝 Original: ${text}
+🔤 Translated: ${translated}
+🎯 Language: ${targetLang.toUpperCase()}`
+    )
+
+  } catch (e) {
+    console.log("Translate Error:", e)
+    reply("❌ Translation failed")
+  }
+},
+
+detect: async () => {
+  try {
+    let text = q
+
+    // 📩 Check replied message
+    const quotedText =
+      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
+      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.extendedTextMessage?.text
+
+    if (quotedText) {
+      text = quotedText
+    }
+
+    if (!text) {
+      return reply(
+`🧠 *Language Detect Command*
+
+Usage:
+${PREFIX}detect <text>
+
+Example:
+${PREFIX}detect Bonjour mon ami
+
+Or reply to a message:
+${PREFIX}detect`
+      )
+    }
+
+    await react(sock, jid, msg.key, "🧠")
+
+    // 🌍 Google detect
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`
+
+    const res = await fetch(url)
+    const data = await res.json()
+
+    if (!data || !data[2]) {
+      return reply("❌ Unable to detect language")
+    }
+
+    const langCode = data[2]
+
+    // 🌐 Language names
+    const languages = {
+  // Major global languages
+  english: "en", en: "en",
+  french: "fr", fr: "fr",
+  spanish: "es", es: "es",
+  german: "de", de: "de",
+  italian: "it", it: "it",
+  portuguese: "pt", pt: "pt",
+  russian: "ru", ru: "ru",
+  arabic: "ar", ar: "ar",
+  hindi: "hi", hi: "hi",
+  chinese: "zh-cn", zh: "zh-cn", chinese: "zh-cn",
+  japanese: "ja", ja: "ja",
+  korean: "ko", ko: "ko",
+  turkish: "tr", tr: "tr",
+  dutch: "nl", nl: "nl",
+  greek: "el", el: "el",
+  polish: "pl", pl: "pl",
+  swedish: "sv", sv: "sv",
+  ukrainian: "uk", uk: "uk",
+  hebrew: "iw", he: "iw", hebrew: "iw",
+  persian: "fa", fa: "fa",
+  thai: "th", th: "th",
+  vietnamese: "vi", vi: "vi",
+  indonesian: "id", id: "id",
+  malay: "ms", ms: "ms",
+
+  // African languages
+  igbo: "ig", ig: "ig",
+  yoruba: "yo", yo: "yo",
+  hausa: "ha", ha: "ha",
+  swahili: "sw", sw: "sw",
+  zulu: "zu", zu: "zu",
+  xhosa: "xh", xh: "xh",
+  afrikaans: "af", af: "af",
+  amharic: "am", am: "am",
+  somali: "so", so: "so",
+
+  // South Asian
+  bengali: "bn", bn: "bn",
+  urdu: "ur", ur: "ur",
+  tamil: "ta", ta: "ta",
+  telugu: "te", te: "te",
+  gujarati: "gu", gu: "gu",
+  punjabi: "pa", pa: "pa",
+  marathi: "mr", mr: "mr",
+
+  // European
+  romanian: "ro", ro: "ro",
+  czech: "cs", cs: "cs",
+  danish: "da", da: "da",
+  finnish: "fi", fi: "fi",
+  hungarian: "hu", hu: "hu",
+  norwegian: "no", no: "no",
+  slovak: "sk", sk: "sk",
+
+  // Extra
+  filipino: "tl", tagalog: "tl", tl: "tl",
+  latin: "la", la: "la",
+  esperanto: "eo", eo: "eo"
+    }
+
+    const detectedLanguage =
+      languages[langCode] || `Unknown (${langCode})`
+
+    reply(
+`🧠 *Language Detection Result*
+
+📝 Text: ${text}
+🌍 Language: ${detectedLanguage}
+🔤 Code: ${langCode.toUpperCase()}
+
+> 🔎 Powered by Smart Detect`
+    )
+
+  } catch (e) {
+    console.log("Detect Error:", e)
+    reply("❌ Language detection failed")
+  }
+},
       // ===== MENU =====
       
 menu: async () => {
