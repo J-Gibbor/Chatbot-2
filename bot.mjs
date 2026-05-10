@@ -1653,8 +1653,7 @@ take: async () => {
 stickergif: async () => {
   if (!isOwner) return reply("❌ Owner only")
 
-  const quoted =
-    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
+  const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
 
   const media =
     msg.message?.imageMessage ||
@@ -1667,27 +1666,23 @@ stickergif: async () => {
 `❌ Reply to image, video, or GIF
 
 🎞️ Command:
-${PREFIX}stickergif
-`
+${PREFIX}stickergif`
     )
   }
 
-  // 🔥 Unique temp files (prevents overwrite bugs)
-  const input = `./temp_${Date.now()}.input`
-  const output = `./temp_${Date.now()}.webp`
+  const id = Date.now()
+  const input = path.join("/tmp", `input_${id}`)
+  const output = path.join("/tmp", `output_${id}.webp`)
 
   try {
-    // 📥 Detect media type
     const type =
-      msg.message?.imageMessage ? "image" :
-      msg.message?.videoMessage ? "video" :
-      quoted?.imageMessage ? "image" :
-      quoted?.videoMessage ? "video" :
-      null
+      msg.message?.imageMessage || quoted?.imageMessage
+        ? "image"
+        : msg.message?.videoMessage || quoted?.videoMessage
+        ? "video"
+        : null
 
-    if (!type) {
-      return reply("❌ Unsupported media type")
-    }
+    if (!type) return reply("❌ Unsupported media type")
 
     const mediaObj =
       msg.message?.imageMessage ||
@@ -1695,109 +1690,76 @@ ${PREFIX}stickergif
       quoted?.imageMessage ||
       quoted?.videoMessage
 
-    // 📥 Download once only
     let buffer = Buffer.from([])
 
     try {
-      const stream = await downloadContentFromMessage(
-        mediaObj,
-        type
-      )
+      const stream = await downloadContentFromMessage(mediaObj, type)
 
       for await (const chunk of stream) {
         buffer = Buffer.concat([buffer, chunk])
       }
-
     } catch (e) {
       console.log("DOWNLOAD ERROR:", e)
-
-      return reply(
-`❌ Media download failed
-
-⚠️ Possible:
-• Expired media
-• View once
-• Corrupt file`
-      )
+      return reply("❌ Media download failed (expired/view-once?)")
     }
 
-    if (!buffer || !buffer.length) {
-      return reply("❌ Empty media buffer")
-    }
+    if (!buffer.length) return reply("❌ Empty media")
 
-    // 🖼️ IMAGE → Sticker
+    // 🖼 IMAGE → sticker
     if (type === "image") {
       try {
         const sticker = await createSticker(buffer)
 
-        return await sock.sendMessage(
+        return await sock.sendMessage(jid, { sticker }, { quoted: msg })
+      } catch (e) {
+        console.log(e)
+        return reply("❌ Image sticker failed")
+      }
+    }
+
+    // 🎥 VIDEO/GIF → sticker
+    fs.writeFileSync(input, buffer)
+
+    const cmd = `"${ffmpegPath}" -y -i "${input}" ` +
+      `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:-1:-1:color=white@0.0" ` +
+      `-t 10 -an -loop 0 "${output}"`
+
+    exec(cmd, async (err) => {
+      try {
+        if (err) {
+          console.log("FFMPEG ERROR:", err)
+          return reply("❌ Conversion failed (FFmpeg issue)")
+        }
+
+        if (!fs.existsSync(output)) {
+          return reply("❌ Output missing")
+        }
+
+        const sticker = fs.readFileSync(output)
+
+        await sock.sendMessage(
           jid,
           { sticker },
           { quoted: msg }
         )
 
       } catch (e) {
-        console.log("IMAGE STICKER ERROR:", e)
-        return reply("❌ Image sticker conversion failed")
-      }
-    }
+        console.log("SEND ERROR:", e)
+        reply("❌ Failed to send sticker")
 
-    // 🎥 VIDEO / GIF → Sticker
-    fs.writeFileSync(input, buffer)
-
-exec(
-  `"${ffmpegPath}" -y -i "${input}" ` +
-  `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:-1:-1:color=white@0.0" ` +
-  `-t 16 -an -loop 0 "${output}"`,
-      async (err) => {
+      } finally {
         try {
-          if (err) {
-            console.log("FFMPEG ERROR:", err)
-            return reply("❌ Video/GIF conversion failed")
-          }
-
-          if (!fs.existsSync(output)) {
-            return reply("❌ Sticker output missing")
-          }
-
-          const stickerBuffer = fs.readFileSync(output)
-
-          await sock.sendMessage(
-            jid,
-            {
-              sticker: stickerBuffer
-            },
-            { quoted: msg }
-          )
-
-        } catch (sendErr) {
-          console.log("SEND ERROR:", sendErr)
-          reply("❌ Failed to send sticker")
-
-        } finally {
-          // 🧹 Cleanup safely
-          try {
-            if (fs.existsSync(input)) fs.unlinkSync(input)
-            if (fs.existsSync(output)) fs.unlinkSync(output)
-          } catch (cleanupErr) {
-            console.log("Cleanup Error:", cleanupErr)
-          }
+          if (fs.existsSync(input)) fs.unlinkSync(input)
+          if (fs.existsSync(output)) fs.unlinkSync(output)
+        } catch (e) {
+          console.log("CLEANUP ERROR:", e)
         }
       }
-    )
+    })
 
   } catch (e) {
-    console.log("STICKERGIF ERROR:", e)
-
-    reply(
-`❌ Failed to convert media
-
-⚠️ Possible:
-• Invalid media
-• FFmpeg missing
-• Large file
-• Corrupt media`
-    )
+    console.log("STICKER ERROR:", e)
+    reply("❌ Sticker conversion failed")
   }
 },
 
