@@ -4991,12 +4991,12 @@ if (commands[cmd]) {
       await react(emoji)
     }
 
-    // ⏳ small delay ensures reaction shows first (important on WhatsApp)
-    await new Promise(r => setTimeout(r, 200))
-
+    await react("⏳")
     
-   // ✅ RUN COMMAND
-   await react("⏳")
+    // ✅ RUN COMMAND
+        // ⏳ small delay ensures reaction shows first (important on WhatsApp)
+    await new Promise(r => setTimeout(r, 200))
+    
     await commands[cmd]()
     await react("✅")
 
