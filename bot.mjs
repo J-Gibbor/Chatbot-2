@@ -1695,8 +1695,6 @@ ${PREFIX}stickergif
       quoted?.imageMessage ||
       quoted?.videoMessage
 
-      await react(sock, jid, msg.key, "🎬")
-
     // 📥 Download once only
     let buffer = Buffer.from([])
 
@@ -4998,6 +4996,7 @@ if (commands[cmd]) {
 
     
    // ✅ RUN COMMAND
+   await react("⏳")
     await commands[cmd]()
     await react("✅")
 
