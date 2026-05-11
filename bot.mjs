@@ -721,7 +721,7 @@ const getGroup_Settings = (jid) => {
       antibadword: false, 
       antilink: false,
       antistatus: false,
-      antistatus_mention: false
+      antistatus_mention: false,
     }
     saveGroupSettings()
   }
@@ -4156,45 +4156,108 @@ antistatusmention: async () => {
   reply(`📢 Anti-status mention ${group_settings.antistatus_mention ? "ON" : "OFF"}`)
 },
 
-del: async () => { 
-  if (!isOwner) return reply("❌ Bot owner only") 
-    const quoted = msg.message?.extendedTextMessage?.contextInfo 
-  
-  if (!quoted) return reply("❌ Reply to a message to delete") 
-    
-  const key = { 
-    remoteJid: jid, 
-    fromMe: false && true, 
-    id: quoted.stanzaId, 
-    participant: quoted.participant 
-  } 
-  try { 
-    await sock.sendMessage(jid, { delete: key }) 
-    reply("🗑️ Message deleted") 
-  } catch (e) { 
-    console.log(e) 
-    reply("❌ Failed to delete message") } 
-  },
-
-delete: async () => { 
+del: async () => {
   if (!isOwner) return reply("❌ Bot owner only")
 
   const quoted = msg.message?.extendedTextMessage?.contextInfo
 
-  if (!quoted) return reply("Reply to message")
+  if (!quoted?.stanzaId) {
+    return reply(
+`❌ Reply to a message to delete
 
-    try { 
-      await sock.sendMessage(jid, { delete: { 
-        remoteJid: jid, 
-        fromMe: false && true, 
-        id: quoted.stanzaId, 
-        participant: quoted.participant 
-      } 
-    }) 
-  } catch (e) { 
-    console.log(e) 
-    reply("❌ Cannot delete (WhatsApp limitation)") } 
-  },
+🗑️ Command:
+${PREFIX}del`
+    )
+  }
+
+  try {
+    // ✅ Universal delete for DM + Group
+    const key = {
+      remoteJid: jid,
+      id: quoted.stanzaId,
+      fromMe: quoted.participant ? false : true
+    }
+
+    // ✅ participant only needed in groups
+    if (quoted.participant) {
+      key.participant = quoted.participant
+    }
+
+    await sock.sendMessage(jid, { delete: key })
+
+    reply("🗑️ Message deleted")
+
+  } catch (e) {
+    console.log("DELETE ERROR:", e)
+
+    // 🔥 Fallback for bot/self messages in DM
+    try {
+      await sock.sendMessage(jid, {
+        delete: {
+          remoteJid: jid,
+          id: quoted.stanzaId,
+          fromMe: true
+        }
+      })
+
+      reply("🗑️ Message deleted")
+
+    } catch (err) {
+      console.log("DELETE FALLBACK ERROR:", err)
+      reply("❌ Failed to delete message (too old or restricted)")
+    }
+  }
+},
+
+delete: async () => {
+  if (!isOwner) return reply("❌ Bot owner only")
+
+  const quoted = msg.message?.extendedTextMessage?.contextInfo
+
+  if (!quoted?.stanzaId) {
+    return reply(
+`❌ Reply to the message you want to delete
+
+🗑️ Command:
+${PREFIX}delete`
+    )
+  }
+
+  try {
+    // ✅ Works for both DM + Group
+    const deletePayload = {
+      remoteJid: jid,
+      fromMe: quoted.participant ? false : true,
+      id: quoted.stanzaId
+    }
+
+    // ✅ Add participant only for groups
+    if (quoted.participant) {
+      deletePayload.participant = quoted.participant
+    }
+
+    await sock.sendMessage(jid, {
+      delete: deletePayload
+    })
+
+  } catch (e) {
+    console.log("DELETE ERROR:", e)
+
+    // 🔥 Fallback: try deleting bot's own message in DM
+    try {
+      await sock.sendMessage(jid, {
+        delete: {
+          remoteJid: jid,
+          fromMe: true,
+          id: quoted.stanzaId
+        }
+      })
+    } catch (err) {
+      console.log("DELETE FALLBACK ERROR:", err)
+      return reply("❌ Cannot delete (message may be too old or not permitted)")
+    }
+  }
+},
 
 alive: async () => {
   if (!isOwner) return reply("❌ Owner only")
