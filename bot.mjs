@@ -1722,7 +1722,7 @@ ${PREFIX}stickergif`
 
     const cmd = `"${ffmpegPath}" -y -i "${input}" ` +
       `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:-1:-1:color=white@0.0" ` +
-      `-t 15 -an -loop 0 "${output}"`
+      `-t 10 -an -loop 0 "${output}"`
 
     exec(cmd, async (err) => {
       try {
