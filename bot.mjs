@@ -4952,12 +4952,6 @@ if (commands[cmd]) {
      if (emoji) {
       await react(emoji)
     }
-
-    await react("⏳")
-    
-    // ✅ RUN COMMAND
-        // ⏳ small delay ensures reaction shows first (important on WhatsApp)
-    await new Promise(r => setTimeout(r, 200))
     
     await commands[cmd]()
     await react("✅")
