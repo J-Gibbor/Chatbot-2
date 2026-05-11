@@ -1671,8 +1671,10 @@ ${PREFIX}stickergif`
   }
 
   const id = Date.now()
-  const input = path.join("/tmp", `input_${id}`)
-  const output = path.join("/tmp", `output_${id}.webp`)
+
+  // ✅ Render-safe temp paths
+  const input = path.join(process.cwd(), `input_${id}`)
+  const output = path.join(process.cwd(), `output_${id}.webp`)
 
   try {
     const type =
@@ -1690,7 +1692,7 @@ ${PREFIX}stickergif`
       quoted?.imageMessage ||
       quoted?.videoMessage
 
-    let buffer = Buffer.from([])
+    let buffer = Buffer.alloc(0)
 
     try {
       const stream = await downloadContentFromMessage(mediaObj, type)
@@ -1705,34 +1707,39 @@ ${PREFIX}stickergif`
 
     if (!buffer.length) return reply("❌ Empty media")
 
-    // 🖼 IMAGE → sticker
+    // ✅ IMAGE → sticker
     if (type === "image") {
       try {
         const sticker = await createSticker(buffer)
-
         return await sock.sendMessage(jid, { sticker }, { quoted: msg })
       } catch (e) {
-        console.log(e)
+        console.log("IMAGE STICKER ERROR:", e)
         return reply("❌ Image sticker failed")
       }
     }
 
-    // 🎥 VIDEO/GIF → sticker
+    // ✅ VIDEO/GIF → sticker
     fs.writeFileSync(input, buffer)
 
-    const cmd = `"${ffmpegPath}" -y -i "${input}" ` +
-      `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:-1:-1:color=white@0.0" ` +
-      `-t 10 -an -loop 0 "${output}"`
+    // 🔥 Render fix:
+    // - no hardcoded ffmpegPath unless valid
+    // - use ffmpeg directly
+    // - add proper webp codec
+    const cmd = `ffmpeg -y -i "${input}" ` +
+      `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000" ` +
+      `-vcodec libwebp -lossless 0 -qscale 50 -preset default -loop 0 -an -vsync 0 -t 8 "${output}"`
 
-    exec(cmd, async (err) => {
+    exec(cmd, async (err, stdout, stderr) => {
       try {
         if (err) {
           console.log("FFMPEG ERROR:", err)
-          return reply("❌ Conversion failed (FFmpeg issue)")
+          console.log("STDERR:", stderr)
+          return reply("❌ Conversion failed (FFmpeg missing or invalid)")
         }
 
         if (!fs.existsSync(output)) {
-          return reply("❌ Output missing")
+          console.log("OUTPUT NOT FOUND")
+          return reply("❌ Sticker output missing")
         }
 
         const sticker = fs.readFileSync(output)
@@ -1745,14 +1752,14 @@ ${PREFIX}stickergif`
 
       } catch (e) {
         console.log("SEND ERROR:", e)
-        reply("❌ Failed to send sticker")
+        return reply("❌ Failed to send sticker")
 
       } finally {
         try {
           if (fs.existsSync(input)) fs.unlinkSync(input)
           if (fs.existsSync(output)) fs.unlinkSync(output)
-        } catch (e) {
-          console.log("CLEANUP ERROR:", e)
+        } catch (cleanupErr) {
+          console.log("CLEANUP ERROR:", cleanupErr)
         }
       }
     })
