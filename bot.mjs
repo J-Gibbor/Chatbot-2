@@ -6,7 +6,7 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys"
 
 import sharp from "sharp"
-import { createCanvas } from "canvas"
+import { createCanvas, loadImage } from "canvas"
 import pino, { levels } from "pino"
 import fs from "fs"
 import express from "express"
@@ -18,6 +18,8 @@ import moment from "moment-timezone"
 import ffmpegPath from "ffmpeg-static"
 import { exec } from "child_process"
 import fetch from "node-fetch"
+import * as math from "mathjs"
+import gtts from "node-gtts"
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -83,7 +85,7 @@ function formatRuntime(ms) {
 }
 
 // ================= DM AUTO REPLY SYSTEM (OWNER ONLY CONTROL) =================
-
+global.OWNER_NAME = "Boss"
 global.DM_AUTO_REPLY = global.DM_AUTO_REPLY || {
   enabled: false,
 
@@ -197,6 +199,184 @@ words: {
   ]
 }}
 
+// ╔══════════════════════════════════════╗
+// 👋 FULL WELCOME / GOODBYE SYSTEM
+// ✅ Group only
+// ✅ Custom text
+// ✅ On/Off
+// ✅ View / Reset
+// ✅ Test
+// ✅ Image support
+// ✅ Variables:
+// {user} {group} {date} {time} {members} {owner}
+// ╚══════════════════════════════════════╝
+
+// 📂 GLOBAL DEFAULT
+// global.GROUP_WELCOME = global.GROUP_WELCOME || {}
+
+// const DEFAULT_WELCOME =
+//   "👋 Welcome {user} to {group}\n👥 Members: {members}\n📅 {date}\n⏰ {time}"
+
+// const DEFAULT_GOODBYE =
+//   "🚪 Goodbye {user}\nWe’ll miss you in {group}"
+
+// 🔄 FORMAT VARIABLES
+function formatMessage(text = "", data = {}) {
+  return String(text)
+    .replace(/{user}/g, data.user || "User")
+    .replace(/{group}/g, data.group || "Group")
+    .replace(/{date}/g, data.date || "")
+    .replace(/{time}/g, data.time || "")
+    .replace(/{members}/g, data.members || "0")
+    .replace(/{owner}/g, data.owner || "Bot Owner")
+}
+
+function generateWelcomeCard(name, groupName) {
+  return new Promise((resolve, reject) => {
+    try {
+
+      const safeName = String(name || "User")
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+
+      const safeGroup = String(groupName || "Group")
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+
+      const output = `welcome_${Date.now()}.jpg`
+
+      const cmd =
+        `ffmpeg -y -f lavfi -i color=c=green:s=720x1280 ` +
+        `-vf "drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:text='Welcome ${safeName}':fontcolor=Black:fontsize=60:x=(w-text_w)/2:y=400,` +
+        `drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:text='${safeGroup}':fontcolor=white:fontsize=40:x=(w-text_w)/2:y=500" ` +
+        `-frames:v 1 "${output}"`
+
+      exec(cmd, (err) => {
+        if (err) {
+          console.log("FFMPEG ERROR:", err)
+          return reject(err)
+        }
+        resolve(output)
+      })
+
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+function generateVoice(text, file) {
+  return new Promise((resolve, reject) => {
+    try {
+      const speech = new gtts("en")
+
+      speech.save(file, text, (err) => {
+        if (err) return reject(err)
+        resolve(file)
+      })
+
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+function generateAnimatedWelcome(name, output) {
+  return new Promise((resolve, reject) => {
+
+    const text = `Welcome ${name}`
+
+    exec(
+      `ffmpeg -y -f lavfi -i color=c=black:s=720x1280:d=5 `
+      + `-vf "drawtext=text='${text}':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=(h-text_h)/2" `
+      + output,
+
+      (err) => {
+        if (err) return reject(err)
+        resolve(output)
+      }
+    )
+  })
+}
+
+// 🔊 GOODBYE VOICE GENERATOR
+function generateGoodbyeVoice(text, file) {
+  return new Promise((resolve, reject) => {
+    try {
+
+      // ✅ ALWAYS language must be "en"
+      const speech = new gtts(text, "en")
+
+      speech.save(file, (err) => {
+        if (err) return reject(err)
+        resolve(file)
+      })
+
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+// 🎭 ANIMATED GOODBYE VIDEO GENERATOR
+function generateAnimatedGoodbye(name, output) {
+  return new Promise((resolve, reject) => {
+    try {
+
+      const safeName = String(name || "User")
+        .replace(/'/g, "")
+        .replace(/"/g, "")
+
+      // ❌ IMPORTANT: must be GOODBYE (not welcome)
+      const text = `Goodbye ${safeName}`
+
+      exec(
+        `ffmpeg -y -f lavfi -i color=c=black:s=720x1280:d=5 ` +
+        `-vf "drawtext=text='${text}':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=(h-text_h)/2" ` +
+        `-pix_fmt yuv420p "${output}"`,
+
+        (err) => {
+          if (err) return reject(err)
+          resolve(output)
+        }
+      )
+
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+// 🖼️ GOODBYE IMAGE CARD GENERATOR
+function generateGoodbyeCard(name, groupName) {
+  return new Promise((resolve, reject) => {
+    try {
+
+      const safeName = String(name || "User")
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+
+      const safeGroup = String(groupName || "Group")
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+
+      const output = `goodbye_${Date.now()}.jpg`
+
+      const cmd =
+        `ffmpeg -y -f lavfi -i color=c=black:s=720x1280 ` +
+        `-vf "drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:text='Goodbye ${safeName}':fontcolor=Red:fontsize=60:x=(w-text_w)/2:y=400,` +
+        `drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:text='${safeGroup}':fontcolor=white:fontsize=40:x=(w-text_w)/2:y=500" ` +
+        `-frames:v 1 "${output}"`
+
+      exec(cmd, (err) => {
+        if (err) {
+          console.log("FFMPEG ERROR:", err)
+          return reject(err)
+        }
+        resolve(output)
+      })
+
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
 // ================= RANDOM PICKER =================
 
 function pickRandom(arr = []) {
@@ -468,11 +648,50 @@ const PREMIUM_MENU_SECTIONS = {
     "test",
     "nettest",
   ],
-  
-  "🌐 TRANSLATE / DECTECT LANGUAGES":[
+
+// 👋 WELCOME / GOODBYE
+"👋 WELCOME & GOODBYE": [
+  "welcome",
+  "goodbye",
+  "setwelcome",
+  "setgoodbye",
+  "viewwelcome",
+  "viewgoodbye",
+  "resetwelcome",
+  "resetgoodbye",
+  "testwelcome",
+  "testgoodbye",
+  "welcomestyle",
+  "goodbyestyle",
+  "welcomecolor",
+  "goodbyecolor",
+  "welcomedelay",
+  "ruleswelcome",
+  "autorole",
+  "autopromote",
+  "autodemote",
+  "autoclean",
+  "autogift"
+],
+
+// 🧮 CALCULATOR
+"🧮 MATH ENGINE": [
+  "math",
+  "calc",
+  "calculate"
+],
+
+    "🌐 TRANSLATE / DECTECT LANGUAGES":[
     "translate",
     "detect",
-  ]
+  ],
+
+  // ⚙️ SETTINGS
+"⚙️ SETTINGS": [
+  "settings",
+  "dashboard"
+],
+
 }
 
 const COMMAND_DESCRIPTIONS = {
@@ -584,9 +803,42 @@ delreply: "🗑️ 𝙍𝙚𝙢𝙤𝙫𝙚 𝙆𝙚𝙮𝙬𝙤𝙧𝙙 𝙍�
   test: "🧪 𝙏𝙚𝙨𝙩 𝘽𝙤𝙩 𝙍𝙚𝙨𝙥𝙤𝙣𝙨𝙚",
 nettest: "🌐 𝘾𝙝𝙚𝙘𝙠 𝙄𝙣𝙩𝙚𝙧𝙣𝙚𝙩 𝘾𝙤𝙣𝙣𝙚𝙘𝙩𝙞𝙤𝙣",
 
+// 👋 WELCOME
+welcome: "👋 𝙏𝙤𝙜𝙜𝙡𝙚 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙢𝙚𝙨𝙨𝙖𝙜𝙚𝙨",
+goodbye: "🚪 𝙏𝙤𝙜𝙜𝙡𝙚 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙢𝙚𝙨𝙨𝙖𝙜𝙚𝙨",
+setwelcome: "✍️ 𝙎𝙚𝙩 𝙘𝙪𝙨𝙩𝙤𝙢 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙩𝙚𝙭𝙩",
+setgoodbye: "✍️ 𝙎𝙚𝙩 𝙘𝙪𝙨𝙩𝙤𝙢 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙩𝙚𝙭𝙩",
+viewwelcome: "👁️ 𝙑𝙞𝙚𝙬 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙢𝙚𝙨𝙨𝙖𝙜𝙚",
+viewgoodbye: "👁️ 𝙑𝙞𝙚𝙬 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙢𝙚𝙨𝙨𝙖𝙜𝙚",
+resetwelcome: "♻️ 𝙍𝙚𝙨𝙚𝙩 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙩𝙚𝙭𝙩",
+resetgoodbye: "♻️ 𝙍𝙚𝙨𝙚𝙩 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙩𝙚𝙭𝙩",
+testwelcome: "🧪 𝙏𝙚𝙨𝙩 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙥𝙧𝙚𝙫𝙞𝙚𝙬",
+testgoodbye: "🧪 𝙏𝙚𝙨𝙩 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙥𝙧𝙚𝙫𝙞𝙚𝙬",
+welcomestyle: "🎭 𝘾𝙝𝙖𝙣𝙜𝙚 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙨𝙩𝙮𝙡𝙚",
+goodbyestyle: "🎭 𝘾𝙝𝙖𝙣𝙜𝙚 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙨𝙩𝙮𝙡𝙚",
+welcomecolor: "🎨 𝙎𝙚𝙩 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙘𝙤𝙡𝙤𝙧",
+goodbyecolor: "🎨 𝙎𝙚𝙩 𝙜𝙤𝙤𝙙𝙗𝙮𝙚 𝙘𝙤𝙡𝙤𝙧",
+welcomedelay: "⏳ 𝙎𝙚𝙩 𝙬𝙚𝙡𝙘𝙤𝙢𝙚 𝙙𝙚𝙡𝙖𝙮",
+ruleswelcome: "📜 𝘼𝙪𝙩𝙤 𝙨𝙚𝙣𝙙 𝙜𝙧𝙤𝙪𝙥 𝙧𝙪𝙡𝙚𝙨",
+autorole: "📍 𝘼𝙪𝙩𝙤 𝙖𝙨𝙨𝙞𝙜𝙣 𝙧𝙤𝙡𝙚",
+autopromote: "👑 𝘼𝙪𝙩𝙤 𝙥𝙧𝙤𝙢𝙤𝙩𝙚 𝙪𝙨𝙚𝙧𝙨",
+autodemote: "⬇️ 𝘼𝙪𝙩𝙤 𝙙𝙚𝙢𝙤𝙩𝙚 𝙪𝙨𝙚𝙧𝙨",
+autoclean: "🧹 𝘼𝙪𝙩𝙤 𝙘𝙡𝙚𝙖𝙣 𝙨𝙮𝙨𝙩𝙚𝙢 𝙢𝙚𝙨𝙨𝙖𝙜𝙚𝙨",
+autogift: "🎁 𝘼𝙪𝙩𝙤 𝙨𝙚𝙣𝙙 𝙜𝙞𝙛𝙩",
+
+// 🧮 CALCULATOR
+calc: "🧮 𝙎𝙘𝙞𝙚𝙣𝙩𝙞𝙛𝙞𝙘 𝙘𝙖𝙡𝙘𝙪𝙡𝙖𝙩𝙤𝙧",
+calculate: "📐 𝘽𝙖𝙨𝙞𝙘 𝙘𝙖𝙡𝙘𝙪𝙡𝙖𝙩𝙤𝙧",
+math: "📊 𝘼𝙙𝙫𝙖𝙣𝙘𝙚𝙙 𝙨𝙘𝙞𝙚𝙣𝙩𝙞𝙛𝙞𝙘 𝙘𝙖𝙡𝙘𝙪𝙡𝙖𝙩𝙤𝙧",
+
+// ⚙️ SETTINGS
+settings: "⚙️ 𝙑𝙞𝙚𝙬 𝙛𝙪𝙡𝙡 𝙗𝙤𝙩 𝙨𝙚𝙩𝙩𝙞𝙣𝙜𝙨",
+dashboard: "🖥️ 𝙊𝙬𝙣𝙚𝙧 𝙘𝙤𝙣𝙩𝙧𝙤𝙡 𝙥𝙖𝙣𝙚𝙡",
+
   // 🌍 TRANSLATE / DETECT LANGUAGE
 translate:"🌐 𝙏𝙧𝙖𝙣𝙨𝙡𝙖𝙩𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚 (many languages)",
 detect:"🧠 𝘿𝙚𝙩𝙚𝙘𝙩 𝙈𝙚𝙨𝙨𝙖𝙜𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚",
+
 }
 
 const menuHeaders = [
@@ -722,10 +974,25 @@ const getGroup_Settings = (jid) => {
       antilink: false,
       antistatus: false,
       antistatus_mention: false,
+      welcome: true,
+      goodbye: true,
+      welcomeText: DEFAULT_WELCOME,
+      goodbyeText: DEFAULT_GOODBYE,
+      welcomeImg: null,
+      goodbyeImg: null
     }
     saveGroupSettings()
   }
   return GROUP_SETTINGS[jid]
+}
+
+global.group_settings = global.group_settings || {}
+
+global.group_settings = {
+  welcome: true,
+  goodbye: true,
+  welcomestyle: "text",
+  goodbyestyle: "text"
 }
 
 const getSettings = (jid) => {
@@ -739,13 +1006,13 @@ const getSettings = (jid) => {
   }
 
   // PREMIUM MENU BACGROUND
-async function getPremiumMenuBackground() {
+// async function getPremiumMenuBackground() {
 
-    // ✅ DIRECT IMAGE FILES (NO STREAM ERRORS)
-    const image = path.join(__dirname, "assets", "wallpapers", "IMG_8746.JPG")
+//     // ✅ DIRECT IMAGE FILES (NO STREAM ERRORS)
+//     const image = path.join(__dirname, "assets", "wallpapers", "IMG_8746.JPG")
 
-  return image
-  }
+//   return image
+//   }
 
 // ================= START =================
 async function start(session) {
@@ -928,7 +1195,6 @@ const body = (
   ""
 ).toString()
 
-
 if (jid === "status@broadcast" && global.AUTO_SAVE_STATUS) {
   try {
 
@@ -1003,6 +1269,7 @@ if (jid === "status@broadcast" && global.AUTO_SAVE_STATUS) {
   }
 }
 
+ // ================= DM AUTO REPLY =================
  // ================= DM AUTO REPLY =================
 if (
   isDM &&
@@ -1108,6 +1375,287 @@ const reply = async (text) => {
 
         // 💡 SAVE LESS FREQUENTLY (reduce disk load)
         if (Math.random() < 0.1) saveStore()
+
+// 🛡️ FULL WORKING WELCOME + GOODBYE STYLE SYSTEM
+// ✅ Supports: text / image / video / voice
+// ✅ Fixes: style not triggering, card not showing, fallback issues
+
+sock.ev.on("group-participants.update", async (update) => {
+  try {
+    const { id, participants, action } = update
+
+    if (!["add", "remove", "leave"].includes(action)) return
+
+    global.group_settings = global.group_settings || {}
+
+    const meta = await sock.groupMetadata(id)
+    const groupName = meta.subject || "Group"
+
+    for (let user of participants) {
+
+      // 🛡️ Safe extraction
+      const userId =
+        typeof user === "string"
+          ? user
+          : user.id || user.participant || ""
+
+      if (!userId) continue
+
+      const member = meta.participants.find(
+        p => p.id === userId
+      )
+
+      const name =
+        member?.notify ||
+        member?.pushName ||
+        userId.split("@")[0] ||
+        "User"
+
+      // =====================================================
+      // 👋 WELCOME SYSTEM
+      // =====================================================
+      if (action === "add" && group_settings.welcome) {
+
+        const style =
+          String(
+            group_settings.welcomestyle || "text"
+          ).toLowerCase()
+
+        const welcomeText =
+          `👋 Welcome ${name} to *${groupName}*`
+
+        // 🖼️ IMAGE
+        if (style === "image") {
+          try {
+            const img =
+              await generateWelcomeCard(
+                name,
+                groupName
+              )
+
+            await sock.sendMessage(id, {
+              image: fs.readFileSync(img),
+              caption: welcomeText
+            })
+
+            if (fs.existsSync(img)) {
+              fs.unlinkSync(img)
+            }
+
+          } catch (e) {
+            console.log(
+              "WELCOME IMAGE ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: welcomeText
+            })
+          }
+        }
+
+        // 🎭 VIDEO
+        else if (style === "video") {
+          try {
+            const video =
+              `./welcome_${Date.now()}.mp4`
+
+            await generateAnimatedWelcome(
+              name,
+              video
+            )
+
+            await sock.sendMessage(id, {
+              video: fs.readFileSync(video),
+              caption: welcomeText
+            })
+
+            if (fs.existsSync(video)) {
+              fs.unlinkSync(video)
+            }
+
+          } catch (e) {
+            console.log(
+              "WELCOME VIDEO ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: welcomeText
+            })
+          }
+        }
+
+        // 🔊 VOICE
+        else if (style === "voice") {
+          try {
+            const voice = `./welcome_${Date.now()}.mp3`
+
+ await generateVoice(
+              `Welcome ${name} to ${groupName}, we are happy to have you here`,
+              voice
+)
+
+await new Promise(r => setTimeout(r, 800))
+
+await sock.sendMessage(id, {
+  audio: fs.readFileSync(voice),
+  mimetype: "audio/mpeg",
+  ptt: true
+})
+
+            if (fs.existsSync(voice)) {
+              fs.unlinkSync(voice)
+            }
+
+          } catch (e) {
+            console.log(
+              "WELCOME VOICE ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: welcomeText
+            })
+          }
+        }
+
+        // 💬 TEXT
+        else {
+          await sock.sendMessage(id, {
+            text: welcomeText
+          })
+        }
+      }
+
+      // =====================================================
+      // 🚪 GOODBYE SYSTEM
+      // =====================================================
+      if (
+        ["remove", "leave"].includes(action) &&
+        group_settings.goodbye
+      ) {
+
+        const style =
+          String(
+            group_settings.goodbyestyle || "text"
+          ).toLowerCase()
+
+        const goodbyeText =
+          `🚪 Goodbye ${name}, we’ll miss you in *${groupName}*!`
+
+        // 🖼️ IMAGE
+        if (style === "image") {
+          try {
+            const img =
+              await generateGoodbyeCard(
+                name,
+                groupName
+              )
+
+            await sock.sendMessage(id, {
+              image: fs.readFileSync(img),
+              caption: goodbyeText
+            })
+
+            if (fs.existsSync(img)) {
+              fs.unlinkSync(img)
+            }
+
+          } catch (e) {
+            console.log(
+              "GOODBYE IMAGE ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: goodbyeText
+            })
+          }
+        }
+
+        // 🎭 VIDEO
+        else if (style === "video") {
+          try {
+            const video =
+              `./goodbye_${Date.now()}.mp4`
+
+            await generateAnimatedGoodbye(
+              name,
+              video
+            )
+
+            await sock.sendMessage(id, {
+              video: fs.readFileSync(video),
+              caption: goodbyeText
+            })
+
+            if (fs.existsSync(video)) {
+              fs.unlinkSync(video)
+            }
+
+          } catch (e) {
+            console.log(
+              "GOODBYE VIDEO ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: goodbyeText
+            })
+          }
+        }
+
+        // 🔊 VOICE
+        else if (style === "voice") {
+          try {
+            const voice = `./goodbye_${Date.now()}.mp3`
+
+await generateGoodbyeVoice(
+  `Goodbye ${name}, we’ll miss you in ${groupName}`,
+  voiceFile
+)
+
+await new Promise(r => setTimeout(r, 800))
+
+await sock.sendMessage(id, {
+  audio: fs.readFileSync(voice),
+  mimetype: "audio/mpeg",
+  ptt: true
+})
+
+            if (fs.existsSync(voice)) {
+              fs.unlinkSync(voice)
+            }
+
+          } catch (e) {
+            console.log(
+              "GOODBYE VOICE ERROR:",
+              e
+            )
+
+            await sock.sendMessage(id, {
+              text: goodbyeText
+            })
+          }
+        }
+
+        // 💬 TEXT
+        else {
+          await sock.sendMessage(id, {
+            text: goodbyeText
+          })
+        }
+      }
+    }
+
+  } catch (e) {
+    console.log(
+      "WELCOME/GOODBYE SYSTEM ERROR:",
+      e
+    )
+  }
+})
 
 // ================= ANTI-LINK =================
   if (isGroup && group_settings.antilink && body) {
@@ -1258,12 +1806,15 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   // COMMAND EMOJI MAP
 
   const COMMAND_REACTIONS = {
+
+  // 🛡️ PROTECTION
   antilink: "🚫",
   antibadword: "🧼",
   antidelete: "🧠",
   antistatus: "👁️",
   antistatusmention: "📢",
 
+  // 👥 ADMIN
   kick: "👢",
   add: "➕",
   invite: "🔗",
@@ -1275,6 +1826,7 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   delete: "🧼",
   del: "🚮",
 
+  // ⚙️ GROUP
   setname: "✏️",
   setdesc: "📝",
   groupinfo: "📊",
@@ -1282,9 +1834,18 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   revoke: "♻️",
   lock: "🔒",
   unlock: "🔓",
+  mute: "🔇",
+  unmute: "🔊",
+  mutelist: "📋",
 
-  requests:"📨",
+  // 🖇️ REQUESTS
+  requests: "📨",
+  approve: "✅",
+  approveall: "🎉",
+  reject: "❌",
+  rejectall: "⛔",
 
+  // 🎨 MEDIA
   getstatus: "📥",
   vv: "👁️",
   pp: "🖼️",
@@ -1294,11 +1855,12 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   memesticker: "😂",
   captionsticker: "✍️",
   stickerpack: "📦",
-    statuslist: "📚",
+  statuslist: "📚",
   autostatus: "⚙️",
   statusfilter: "👥",
   statusclear: "🧹",
 
+  // 👑 OWNER
   addowner: "👑",
   delowner: "🗑️",
   owners: "📋",
@@ -1308,23 +1870,29 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   ban: "🚷",
   unban: "✅",
   banned: "📋",
+  dashboard: "🖥️",
 
+  // 💬 AUTO REPLY
   autoreplyon: "💬",
   autoreplyoff: "🔕",
   addreply: "➕",
   delreply: "🗑️",
+  listreply: "📋",
 
-  default: "⚡",
+  // 🌍 TRANSLATE
   translate: "🌍",
   detect: "🧠",
 
+  // ⚠️ WARN
   warn: "⚠️",
   warnlist: "📋",
   warninfo: "👤",
   unwarn: "🧹",
+  resetwarns: "♻️",
 
-  help:"❓",
-  runtime:"🕒",
+  // ℹ️ INFO
+  help: "❓",
+  runtime: "🕒",
   mode: "⚙️",
   alive: "💚",
   whoami: "🆔",
@@ -1335,12 +1903,44 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   test: "🧪",
   nettest: "🌐",
 
+  // 📦 STICKER PACK
   packcreate: "📦",
   packadd: "➕",
   packview: "👀",
   packlist: "📚",
   packdelete: "🗑️",
   packsend: "🎲",
+
+  // 👋 WELCOME / GOODBYE
+  welcome: "👋",
+  goodbye: "🚪",
+  setwelcome: "✍️",
+  setgoodbye: "✍️",
+  viewwelcome: "👁️",
+  viewgoodbye: "👁️",
+  resetwelcome: "♻️",
+  resetgoodbye: "♻️",
+  testwelcome: "🧪",
+  testgoodbye: "🧪",
+  welcomestyle: "🎭",
+  goodbyestyle: "🎭",
+  welcomecolor: "🎨",
+  goodbyecolor: "🎨",
+  welcomedelay: "⏳",
+  ruleswelcome: "📜",
+  autorole: "📍",
+  autopromote: "👑",
+  autodemote: "⬇️",
+  autoclean: "🧹",
+  autogift: "🎁",
+
+  // 🧮 CALCULATOR
+  calc: "🧮",
+  calculate: "📐",
+  math: "📊",
+
+  // ⚙️ SYSTEM
+  default: "⚡"
 }
    
 
@@ -2169,7 +2769,7 @@ pack_send: async () => {
       },
 
       antibadword: async () => {
-  if (!isOwner) return reply("❌ Admin only  or Bot owner only")
+  if (!isOwner) return reply("❌ Bot Owner only  or Bot owner only")
 
   group_settings.antibadword = args[0] === "on"
   saveGroupSettings()
@@ -2226,10 +2826,89 @@ pack_send: async () => {
 🗂️ *Database*
 📚 Status DB: ${global.STATUS_DB?.length || 0}
 🚷 Ban DB: ${global.BANNED_USERS ? Object.keys(global.BANNED_USERS).length : 0}
-👥 Owners DB: ${BOT_OWNERS.length}`
+👥 Owners DB: ${BOT_OWNERS.length}
+
+👋 *Welcome & Goodbye System*
+👋 Welcome: ${group_settings.welcome ? "✅ ON" : "❌ OFF"}
+🚪 Goodbye: ${group_settings.goodbye ? "✅ ON" : "❌ OFF"}
+📝 Welcome Text: ${group_settings.welcomeText ? "✅ Custom" : "❌ Default"}
+📝 Goodbye Text: ${group_settings.goodbyeText ? "✅ Custom" : "❌ Default"}
+🖼️ Welcome Image: ${group_settings.welcomeImg ? "✅ Set" : "❌ None"}
+🖼️ Goodbye Image: ${group_settings.goodbyeImg ? "✅ Set" : "❌ None"}
+🎭 Welcome Style: ${String(group_settings.welcomestyle || "text").toUpperCase()}
+🎭 Goodbye Style: ${String(group_settings.goodbyestyle || "text").toUpperCase()}
+🎨 Welcome Color: ${group_settings.welcomecolor || "Default"}
+🎨 Goodbye Color: ${group_settings.goodbyecolor || "Default"}
+⏳ Welcome Delay: ${group_settings.welcomedelay || 0}s
+📜 Rules Welcome: ${group_settings.ruleswelcome ? "✅ ON" : "❌ OFF"}
+
+🤖 *Automation*
+📍 Auto Role: ${group_settings.autorole ? "✅ ON" : "❌ OFF"}
+👑 Auto Promote: ${group_settings.autopromote ? "✅ ON" : "❌ OFF"}
+⬇️ Auto Demote: ${group_settings.autodemote ? "✅ ON" : "❌ OFF"}
+🧹 Auto Clean Left Msg: ${group_settings.autoclean ? "✅ ON" : "❌ OFF"}
+🎁 Auto Gift: ${group_settings.autogift ? "✅ ON" : "❌ OFF"}`
   )
 
   await react(sock, jid, msg.key, "success")
+},
+
+dashboard: async () => {
+  if (!isOwner) return reply("❌ Owner only")
+
+  try {
+    const text = `
+🖥️ *OWNER CONTROL DASHBOARD*
+
+👑 *Owners*
+• Total Owners: ${BOT_OWNERS.length}
+• Primary: ${BOT_OWNERS[0] || "None"}
+
+⚙️ *Bot Mode*
+• Mode: ${(settings.mode || "public").toUpperCase()}
+
+🛡️ *Protection System*
+• Anti-Link: ${group_settings.antilink ? "ON" : "OFF"}
+• Anti-Badword: ${group_settings.antibadword ? "ON" : "OFF"}
+• Anti-Delete: ${group_settings.antidelete ? "ON" : "OFF"}
+
+💬 *Auto Systems*
+• DM Auto Reply: ${global.DM_AUTO_REPLY?.enabled ? "ON" : "OFF"}
+• Auto Status Save: ${global.AUTO_SAVE_STATUS ? "ON" : "OFF"}
+
+🚷 *Ban System*
+• Banned Users: ${Object.keys(global.BANNED_USERS || {}).length}
+
+📊 *Bot Stats*
+• Messages: ${BOT_STATS?.messages || 0}
+• Uptime: ${formatRuntime(process.uptime())}
+
+⚡ *Quick Actions*
+• ${PREFIX}autoreplyon / autoreplyoff
+• ${PREFIX}antilink on / off
+• ${PREFIX}ban @user
+• ${PREFIX}unban @user
+• ${PREFIX}restart
+• ${PREFIX}broadcast
+
+🧠 *System Status*
+• Status DB: ${global.STATUS_DB?.length || 0}
+• Owners DB: ${BOT_OWNERS.length}
+
+━━━━━━━━━━━━━━━━━━
+💎 Boss' Dashboard
+    `
+
+    await sock.sendMessage(
+      jid,
+      { text, mentions: [sender] },
+      { quoted: msg }
+    )
+
+  } catch (e) {
+    console.log("DASHBOARD ERROR:", e)
+    reply("❌ Failed to load dashboard")
+  }
 },
      
       // ======== WARNING ==========
@@ -2389,6 +3068,7 @@ resetwarns: async () => {
 
     
  // ================= ADD OWNER =================
+ // 👑 ADD OWNER BY NUMBER (no @mentions)
 // 👑 ADD OWNER (number, mention, or reply) — FULL FIX
 addowner: async () => {
   if (!isOwner) return reply("❌ Owner only")
@@ -3550,7 +4230,7 @@ invite: async () => {
 🔗 Join Link:
 ${link}
 
-⚡ POWERED BY GIBBORLEE BOT`,
+⚡ POWERED BY BOSS`,
         mentions: [sender]
       }
     )
@@ -3636,11 +4316,11 @@ ${link}
       jid,
       {
         text: `
-👢 *USER REMOVED*
+👢 *USER KICKED*
 
 🚫 User: @${user.split("@")[0]}
 👑 By: @${sender.split("@")[0]}
-📛 Action: Kick Successful
+📛 Action: Removed Successfully
         `,
         mentions: [user, sender]
       },
@@ -3657,7 +4337,7 @@ ${link}
 ❌ *KICK FAILED*
 
 🚫 User: @${user.split("@")[0]}
-⚠️ Reason: Could not remove user
+⚠️ Reason: Could not remove user, you are not an admin
 👑 By: @${sender.split("@")[0]}
         `,
         mentions: [user, sender]
@@ -4268,7 +4948,7 @@ alive: async () => {
   const hours = Math.floor(minutes / 60)
 
   reply(`
-🤖 GIBBORLEE BOT STATS
+🤖 BOSS BOT STATS
 
 ⏱️ Uptime: ${hours}h ${minutes % 60}m ${seconds % 60}s
 💬 Messages: ${BOT_STATS.messages}
@@ -4684,9 +5364,9 @@ const langMap = {
     await react(sock, jid, msg.key, "🌍")
 
     // ✅ WORKING ENDPOINT
-    const res = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`
-    )
+   const res = await fetch(
+  `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`
+)
 
     const data = await res.json()
 
@@ -4717,8 +5397,6 @@ ${targetLang.toUpperCase()}
 
 > 🔎 Powered by Smart Translate`
     )
-    
-    
 
   } catch (e) {
     console.log("TRANSLATE ERROR:", e)
@@ -4822,6 +5500,677 @@ ${PREFIX}detect`
     reply("❌ Language detection failed")
   }
 },
+
+// 👋 ADVANCED WELCOME / GOODBYE SETTINGS COMMANDS
+
+// 👋 WELCOME COMMAND
+welcome: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const settings = getGroup_Settings(jid)
+
+  const action = args[0]?.toLowerCase()
+
+  if (!action) {
+    return reply(
+`👋 Welcome Commands:
+${PREFIX}welcome on
+${PREFIX}welcome off`
+    )
+  }
+
+  if (action === "on") {
+    settings.welcome = true
+    saveWelcomeDB()
+    return reply("👋 Welcome enabled")
+  }
+
+  if (action === "off") {
+    settings.welcome = false
+    saveWelcomeDB()
+    return reply("🔕 Welcome disabled")
+  }
+},
+
+// 🚪 GOODBYE COMMAND
+goodbye: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const settings = getGroup_Settings(jid)
+
+  const action = args[0]?.toLowerCase()
+
+  if (!action) {
+    return reply(
+`🚪 Goodbye Commands:
+${PREFIX}goodbye on
+${PREFIX}goodbye off`
+    )
+  }
+
+  if (action === "on") {
+    settings.goodbye = true
+    saveWelcomeDB()
+    return reply("🚪 Goodbye enabled")
+  }
+
+  if (action === "off") {
+    settings.goodbye = false
+    saveWelcomeDB()
+    return reply("🔕 Goodbye disabled")
+  }
+},
+
+// ✍️ SET WELCOME
+setwelcome: async () => {
+  if (!q) return reply("❌ Example: !setwelcome Welcome {user}")
+
+  const settings = getGroup_Settings(jid)
+
+  settings.welcomeText = q
+
+  saveWelcomeDB()
+
+  reply("✅ Welcome message updated")
+},
+
+// ✍️ SET GOODBYE
+setgoodbye: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!q) return reply("❌ Example: !setgoodbye Bye {user}")
+
+  const settings = getGroup_Settings(jid)
+
+  settings.goodbyeText = q
+
+  saveWelcomeDB()
+
+  reply("✅ Goodbye message updated")
+},
+
+// 👁️ VIEW WELCOME
+viewwelcome: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  const settings = getGroup_Settings(jid)
+
+  reply(
+`👋 Current Welcome Message:
+
+${settings.welcomeText}`
+  )
+},
+
+// 👁️ VIEW GOODBYE
+viewgoodbye: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  const settings = getGroup_Settings(jid)
+
+  reply(
+`🚪 Current Goodbye Message:
+
+${settings.goodbyeText}`
+  )
+},
+
+// ♻️ RESET WELCOME
+resetwelcome: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  const settings = getGroup_Settings(jid)
+
+  settings.welcomeText = DEFAULT_WELCOME
+
+  saveWelcomeDB()
+
+  reply("♻️ Welcome reset")
+},
+
+// ♻️ RESET GOODBYE
+resetgoodbye: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  const settings = getGroup_Settings(jid)
+
+  settings.goodbyeText = DEFAULT_GOODBYE
+
+  saveWelcomeDB()
+
+  reply("♻️ Goodbye reset")
+},
+
+// 🧪 TEST WELCOME
+testwelcome: async () => {
+  try {
+    if (!isOwner) return reply("❌ Owner only")
+
+    const style = group_settings.welcomestyle || "text"
+
+    const name =
+      msg.pushName ||
+      sender.split("@")[0] ||
+      "User"
+
+    const groupName = isGroup
+      ? (await sock.groupMetadata(jid)).subject
+      : "Test Group"
+
+    const welcomeText = formatMessage(
+      group_settings.welcomeText ||
+      "👋 Welcome {user} to *{group}*!",
+      {
+        user: name,
+        group: groupName,
+        owner: global.OWNER_NAME || "Bot Owner"
+      }
+    )
+
+    if (style === "text") {
+      return sock.sendMessage(jid, {
+        text: welcomeText
+      }, { quoted: msg })
+    }
+
+    if (style === "image") {
+      const img = await generateWelcomeCard(name, groupName)
+
+      return sock.sendMessage(jid, {
+        image: fs.readFileSync(img),
+        caption: welcomeText
+      }, { quoted: msg })
+    }
+
+    if (style === "video") {
+      const video = "./welcome.mp4"
+
+      await generateAnimatedWelcome(name, video)
+
+      return sock.sendMessage(jid, {
+        video: fs.readFileSync(video),
+        caption: welcomeText
+      }, { quoted: msg })
+    }
+
+    if (style === "voice") {
+      const voice = "./welcome.mp3"
+
+      await generateVoice(welcomeText, voice)
+
+      return sock.sendMessage(jid, {
+        audio: fs.readFileSync(voice),
+        mimetype: "audio/mp4",
+        ptt: true
+      }, { quoted: msg })
+    }
+
+  } catch (e) {
+    console.log("TESTWELCOME ERROR:", e)
+    reply("❌ Test welcome failed")
+  }
+},
+
+// 🧪 TEST GOODBYE
+testgoodbye: async () => {
+  try {
+    if (!isOwner) return reply("❌ Owner only")
+
+    const style = group_settings.goodbyestyle || "text"
+
+    const name =
+  msg.pushName ||
+  sender.split("@")[0] ||
+  "User"
+
+
+    const groupName = isGroup
+      ? (await sock.groupMetadata(jid)).subject
+      : "Test Group"
+
+    const goodbyeText = formatMessage(
+      group_settings.goodbyeText ||
+      "🚪 Goodbye {user}, we’ll miss you in *{group}*!",
+      {
+        user: name,
+        group: groupName,
+        owner: global.OWNER_NAME || "Bot Owner"
+      }
+    )
+
+    // 💬 TEXT
+    if (style === "text") {
+      return sock.sendMessage(jid, {
+        text: goodbyeText
+      }, { quoted: msg })
+    }
+
+    // 🖼️ IMAGE
+    if (style === "image") {
+      const img = await generateGoodbyeCard(name, groupName)
+
+      return sock.sendMessage(jid, {
+        image: fs.readFileSync(img),
+        caption: goodbyeText
+      }, { quoted: msg })
+    }
+
+    // 🎭 VIDEO
+    if (style === "video") {
+      const video = "./goodbye.mp4"
+
+      await generateAnimatedGoodbye(name, video)
+
+      return sock.sendMessage(jid, {
+        video: fs.readFileSync(video),
+        caption: goodbyeText
+      }, { quoted: msg })
+    }
+
+    // 🔊 VOICE
+    if (style === "voice") {
+      const voice = "./goodbye.mp3"
+
+      await generateVoice(goodbyeText, voice)
+
+      return sock.sendMessage(jid, {
+        audio: fs.readFileSync(voice),
+        mimetype: "audio/mp4",
+        ptt: true
+      }, { quoted: msg })
+    }
+
+  } catch (e) {
+    console.log("TESTGOODBYE ERROR:", e)
+    reply("❌ Test goodbye failed")
+  }
+},
+
+// 🎭 WELCOME STYLE
+welcomestyle: async () => {
+  try {
+
+    if (!isOwner) return reply("❌ Owner only")
+
+    const style = args[0]
+    if (!style) {
+      return reply(
+`❌ Usage: !welcomestyle text | image | video | voice`
+      )
+    }
+
+    group_settings.welcomestyle = style
+
+    reply(`✅ Welcome style set to: ${style}`)
+
+  } catch (e) {
+    console.log("WELCOMESTYLE ERROR:", e)
+    reply("❌ Failed to set welcome style")
+  }
+},
+
+// 🎭 GOODBYE STYLE
+goodbyestyle: async () => {
+  try {
+
+    if (!isOwner) return reply("❌ Owner only")
+
+    const style = args[0]
+    if (!style) {
+      return reply(
+`❌ Usage: !goodbyestyle text | image | video | voice`
+      )
+    }
+
+    group_settings.goodbyestyle = style
+
+    reply(`✅ Goodbye style set to: ${style}`)
+
+  } catch (e) {
+    console.log("GOODBYSTYLE ERROR:", e)
+    reply("❌ Failed to set goodbye style")
+  }
+},
+
+// 🎨 WELCOME COLOR
+welcomecolor: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!q) return reply(`❌ Example: ${PREFIX}welcomecolor blue`)
+
+  const settings = getGroup_Settings(jid)
+  settings.welcomecolor = q
+  saveWelcomeDB()
+
+  reply(`🎨 Welcome color set to: ${q}`)
+},
+
+// 🎨 GOODBYE COLOR
+goodbyecolor: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!q) return reply(`❌ Example: ${PREFIX}goodbyecolor red`)
+
+  const settings = getGroup_Settings(jid)
+  settings.goodbyecolor = q
+  saveWelcomeDB()
+
+  reply(`🎨 Goodbye color set to: ${q}`)
+},
+
+// ⏳ WELCOME DELAY
+welcomedelay: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const seconds = parseInt(args[0])
+
+  if (isNaN(seconds) || seconds < 0 || seconds > 300) {
+    return reply(
+`❌ Usage:
+${PREFIX}welcomedelay 5
+
+⚠️ Range: 0 - 300 seconds`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.welcomedelay = seconds
+  saveWelcomeDB()
+
+  reply(`⏳ Welcome delay set to ${seconds}s`)
+},
+
+// 📜 RULES WELCOME
+ruleswelcome: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}ruleswelcome on
+${PREFIX}ruleswelcome off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.ruleswelcome = action === "on"
+  saveWelcomeDB()
+
+  reply(`📜 Rules Welcome ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// 📍 AUTO ROLE
+autorole: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}autorole on
+${PREFIX}autorole off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.autorole = action === "on"
+  saveWelcomeDB()
+
+  reply(`📍 Auto Role ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// 👑 AUTO PROMOTE
+autopromote: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}autopromote on
+${PREFIX}autopromote off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.autopromote = action === "on"
+  saveWelcomeDB()
+
+  reply(`👑 Auto Promote ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// ⬇️ AUTO DEMOTE
+autodemote: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}autodemote on
+${PREFIX}autodemote off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.autodemote = action === "on"
+  saveWelcomeDB()
+
+  reply(`⬇️ Auto Demote ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// 🧹 AUTO CLEAN
+autoclean: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}autoclean on
+${PREFIX}autoclean off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.autoclean = action === "on"
+  saveWelcomeDB()
+
+  reply(`🧹 Auto Clean ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// 🎁 AUTO GIFT
+autogift: async () => {
+  if (!isGroup) return reply("❌ Group only")
+  if (!isOwner) return reply("❌ Bot Owner only")
+
+  const action = args[0]?.toLowerCase()
+
+  if (!["on", "off"].includes(action)) {
+    return reply(
+`❌ Usage:
+${PREFIX}autogift on
+${PREFIX}autogift off`
+    )
+  }
+
+  const settings = getGroup_Settings(jid)
+  settings.autogift = action === "on"
+  saveWelcomeDB()
+
+  reply(`🎁 Auto Gift ${action === "on" ? "enabled" : "disabled"}`)
+},
+
+// 🧠 ADVANCED CALCULATOR — scientific + conversions + percentages
+calc: async () => {
+  if (!isOwner) return reply("❌ Bot Owner only")
+  try {
+    if (!q) {
+      return reply(
+`❌ Enter a calculation
+
+🧠 Command:
+${PREFIX}calc 25+5*2
+
+📌 Advanced Examples:
+${PREFIX}calc sqrt(144)
+${PREFIX}calc sin(30)
+${PREFIX}calc cos(60)
+${PREFIX}calc tan(45)
+${PREFIX}calc log(100)
+${PREFIX}calc ln(5)
+${PREFIX}calc 5!
+${PREFIX}calc 2^8
+${PREFIX}calc 50%
+${PREFIX}calc pi*5
+${PREFIX}calc e^2
+
+📖 Description:
+Scientific calculator with trig, logs, factorial, constants & percentages`
+      )
+    }
+
+    let expression = q.toLowerCase().trim()
+
+    // 🔢 Constants
+    expression = expression
+      .replace(/\bpi\b/g, "Math.PI")
+      .replace(/\be\b/g, "Math.E")
+
+    // 📐 Trig functions (degrees)
+    expression = expression
+      .replace(/sin\(([^)]+)\)/g, "Math.sin(($1)*Math.PI/180)")
+      .replace(/cos\(([^)]+)\)/g, "Math.cos(($1)*Math.PI/180)")
+      .replace(/tan\(([^)]+)\)/g, "Math.tan(($1)*Math.PI/180)")
+
+    // 🔬 Scientific
+    expression = expression
+      .replace(/sqrt\(([^)]+)\)/g, "Math.sqrt($1)")
+      .replace(/log\(([^)]+)\)/g, "Math.log10($1)")
+      .replace(/ln\(([^)]+)\)/g, "Math.log($1)")
+      .replace(/abs\(([^)]+)\)/g, "Math.abs($1)")
+
+    // 📊 Power
+    expression = expression.replace(/(\d+)\^(\d+)/g, "($1**$2)")
+
+    // 💯 Percent
+    expression = expression.replace(/(\d+)%/g, "($1/100)")
+
+    // 🔥 Factorial
+    expression = expression.replace(/(\d+)!/g, (_, n) => {
+      let num = parseInt(n)
+      let fact = 1
+      for (let i = 2; i <= num; i++) fact *= i
+      return fact
+    })
+
+    // 🔒 Security filter
+    if (/[^0-9+\-*/%.(),\s*MathPIElogqrtansincoabt]/i.test(expression)) {
+      return reply("❌ Unsupported or unsafe expression")
+    }
+
+    let result
+
+    try {
+      result = Function(`"use strict"; return (${expression})`)()
+    } catch {
+      return reply("❌ Invalid calculation syntax")
+    }
+
+    if (
+      result === undefined ||
+      result === null ||
+      Number.isNaN(result) ||
+      !Number.isFinite(result)
+    ) {
+      return reply("❌ Could not calculate")
+    }
+
+    // 🔢 Clean long decimals
+    if (typeof result === "number") {
+      result = parseFloat(result.toFixed(10))
+    }
+
+    await sock.sendMessage(jid, {
+      react: {
+        text: "🧠",
+        key: msg.key
+      }
+    })
+
+    reply(
+`🧠 *Scientific Calculator*
+
+📥 Expression:
+${q}
+
+📤 Result:
+${result}`
+    )
+
+  } catch (e) {
+    console.log("ADV CALC ERROR:", e)
+
+    reply(
+`❌ Calculation failed
+
+⚠️ Supported:
+• + - * / %
+• sqrt()
+• sin() cos() tan()
+• log() ln()
+• factorial (!)
+• powers (^)
+• pi, e`
+    )
+  }
+},
+
+calculate: async () => {
+  try {
+    if (!q) return reply("❌ Example: !calculate 5+5*2")
+
+    // Safety filter (prevents code injection)
+    if (!/^[0-9+\-*/().\s^%]+$/.test(q)) {
+      return reply("❌ Invalid math expression")
+    }
+
+    let expression = q
+      .replace(/\^/g, "**") // power support
+
+    const result = Function(`"use strict"; return (${expression})`)()
+
+    reply(`🧮 Result:\n${q} = ${result}`)
+  } catch (e) {
+    console.log("CALC ERROR:", e)
+    reply("❌ Calculation error")
+  }
+},
+
+math: async () => {
+  try {
+    if (!q) return reply("❌ Example: !math sin(90) + sqrt(16)")
+
+    const result = math.evaluate(q)
+
+    reply(
+`📊 *Advanced Scientific Math*
+
+🧮 ${q}
+✅ = ${result}`
+    )
+
+  } catch (e) {
+    console.log("MATH ERROR:", e)
+    reply("❌ Invalid math expression")
+  }
+},
+
       // ===== MENU =====
       
 menu: async () => {
@@ -4902,9 +6251,7 @@ const userRole = getUserRole({
 // const randomImage = `https://picsum.photos/seed/menu${Date.now()}/500/350`
 
  // 🌍 Realistic wallpapers:
-const bg = await getPremiumMenuBackground()
-
-
+// const bg = await getPremiumMenuBackground()
 
   // 📊 SYSTEM INFO
   // const uptime = process.uptime()
@@ -4978,6 +6325,7 @@ How can I be of assisstance to you today 😁
 🎨 Theme: ${getThemeLabel()}
 🪪 Role: ${userRole}
 👑 Owners: ${BOT_OWNERS.length}
+👤 Owner Name: ${global.OWNER_NAME || "Bot Owner"}
 📊 Messages: ${BOT_STATS.messages}
 ⚡ Runtime: ${uptime}
 🛠️ Mode: ${settings?.mode || "public"}
@@ -5000,13 +6348,12 @@ How can I be of assisstance to you today 😁
     menuText += `
 ━━━━━━━━━━━━━━━━━━━━
 ╔═══━━━── • ──━━━═══╗
-                POWERED BY GIBBOR  
+                POWERED BY BOSS  
 ╚═══━━━── • ──━━━═══╝
 `
  // ===== SEND MENU WITH WORKING IMAGE =====
-  await sock.sendMessage(from, {
-   image: { url: bg }, 
-   caption: menuText, 
+  await sock.sendMessage(from, { 
+   text: menuText, 
    mentions: [sender] 
   }, { quoted: msg }) 
 }
@@ -5022,7 +6369,9 @@ if (commands[cmd]) {
      if (emoji) {
       await react(emoji)
     }
-    
+    // ⏳ small delay ensures reaction shows first (important on WhatsApp)
+    await new Promise(r => setTimeout(r, 200))
+
     await commands[cmd]()
     await react("✅")
 
