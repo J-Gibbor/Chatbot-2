@@ -1008,7 +1008,7 @@ global.group_settings = {
 
 // 🔥 FIX CORRUPTED MODE
 if (!["public", "private"].includes(SETTINGS["global"]?.mode)) {
-  SETTINGS["global"].mode = "public"
+  SETTINGS["global"].mode = "private"
   saveSettings()
 }
 
