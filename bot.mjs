@@ -999,8 +999,8 @@ if (!fs.existsSync("./database")) {
 global.group_settings = global.group_settings || {}
 
 global.group_settings = {
-  welcome: true,
-  goodbye: true,
+  welcome: false,
+  goodbye: false,
   welcomestyle: "text",
   goodbyestyle: "text"
 }
@@ -1029,8 +1029,8 @@ const getGroup_Settings = (jid) => {
       antilink: false,
       antistatus: false,
       antistatus_mention: false,
-      welcome: true,
-      goodbye: true,
+      welcome: false,
+      goodbye: false,
       welcomeText: DEFAULT_WELCOME,
       goodbyeText: DEFAULT_GOODBYE,
       welcomeImg: null,
