@@ -1044,7 +1044,7 @@ const getGroup_Settings = (jid) => {
 const getSettings = (jid) => {
    if (!SETTINGS[jid]) {
     SETTINGS[jid] = {
-      mode: "public",
+      mode: "private",
     }
     saveSettings()
   }
