@@ -1,0 +1,6 @@
+{
+  "welcome": true,
+  "goodbye": true,
+  "welcomestyle": "text",
+  "goodbyestyle": "text"
+}

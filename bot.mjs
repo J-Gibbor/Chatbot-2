@@ -508,7 +508,6 @@ const addWarn = async (sock, jid, user, reason) => {
   saveWarnDB()
 }
 
-
 // ==== STICKER META ====
 
 const STICKER_META = {
@@ -926,6 +925,42 @@ const GROUP_SETTINGS_FILE = "./group-settings.json"
 const STORE_FILE = "./msg-store.json"
 const OWNERS_FILE = "./owners.json"
 const SETTINGS_FILE = "./settings.json"
+const WELCOME_DB_FILE = "./database/welcome.json"
+
+function saveWelcomeDB(data) {
+  try {
+
+    if (!fs.existsSync("./database")) {
+      fs.mkdirSync("./database")
+    }
+
+    fs.writeFileSync(
+      WELCOME_DB_FILE,
+      JSON.stringify(data, null, 2)
+    )
+
+  } catch (e) {
+    console.log("SAVE WELCOME DB ERROR:", e)
+  }
+}
+
+function loadWelcomeDB() {
+  try {
+
+    if (!fs.existsSync(WELCOME_DB_FILE)) {
+      return {}
+    }
+
+    return JSON.parse(
+      fs.readFileSync(WELCOME_DB_FILE)
+    )
+
+  } catch (e) {
+    console.log("LOAD WELCOME DB ERROR:", e)
+    return {}
+  }
+}
+
 
 // Optional save function
 const saveGroupSchedules = () => {
@@ -957,6 +992,20 @@ if (!SETTINGS["global"]) {
   saveSettings()
 }
 
+if (!fs.existsSync("./database")) {
+  fs.mkdirSync("./database")
+}
+
+global.group_settings = global.group_settings || {}
+
+global.group_settings = {
+  welcome: true,
+  goodbye: true,
+  welcomestyle: "text",
+  goodbyestyle: "text"
+}
+
+
 // 🔥 FIX CORRUPTED MODE
 if (!["public", "private"].includes(SETTINGS["global"]?.mode)) {
   SETTINGS["global"].mode = "public"
@@ -965,6 +1014,12 @@ if (!["public", "private"].includes(SETTINGS["global"]?.mode)) {
 
 const saveStore = () => fs.writeFileSync(STORE_FILE, JSON.stringify(MSG_STORE, null, 2))
 const saveOwners = () => fs.writeFileSync(OWNERS_FILE, JSON.stringify(BOT_OWNERS, null, 2))
+
+const DEFAULT_WELCOME =
+  "👋 Welcome {user} to *{group}*! Enjoy your stay."
+
+const DEFAULT_GOODBYE =
+  "🚪 Goodbye {user}! Thanks for being part of *{group}*."
 
 const getGroup_Settings = (jid) => {
   if (!GROUP_SETTINGS[jid]) {
@@ -984,15 +1039,6 @@ const getGroup_Settings = (jid) => {
     saveGroupSettings()
   }
   return GROUP_SETTINGS[jid]
-}
-
-global.group_settings = global.group_settings || {}
-
-global.group_settings = {
-  welcome: true,
-  goodbye: true,
-  welcomestyle: "text",
-  goodbyestyle: "text"
 }
 
 const getSettings = (jid) => {
@@ -1310,7 +1356,7 @@ if (
 
         // 💬 Smarter contextual reply
         const autoReply =
-          getHumanAutoReply(body)
+          getSmartAutoReply(body)
 
         await sock.sendMessage(
           jid,
@@ -1658,48 +1704,247 @@ await sock.sendMessage(id, {
 })
 
 // ================= ANTI-LINK =================
-  if (isGroup && group_settings.antilink && body) {
-    const links = ["http", "wa.me", ".com", ".net", "chat.whatsapp.com"]
+if (isGroup && group_settings.antilink && body) {
+  const links = [
+    "http",
+    "https",
+    "wa.me",
+    ".com",
+    ".net",
+    "chat.whatsapp.com"
+  ]
 
-    if (links.some(l => body.toLowerCase().includes(l))) {
-      if (!isOwner) {
+  if (links.some(l =>
+    body.toLowerCase().includes(l)
+  )) {
 
-        await sock.sendMessage(jid, { delete: msg.key })
+    // 🛡️ Skip owners/admins
+    if (!isOwner && !isAdmin) {
 
-        await addWarn(sock, jid, sender, "Link detected")
+      try {
+        // 🗑️ Delete offending message
+        await sock.sendMessage(jid, {
+          delete: msg.key
+        })
 
-        return
+      } catch (e) {
+        console.log(
+          "ANTI-LINK DELETE ERROR:",
+          e
+        )
+      }
+
+      // ⚠️ Add warning
+      const warnCount =
+        await addWarn(
+          sock,
+          jid,
+          sender,
+          "Link detected"
+        )
+
+      // 🚨 AUTO KICK AT 3 WARNS
+      if (warnCount >= 3) {
+
+        try {
+
+          await sock.sendMessage(jid, {
+            text:
+              `🚫 @${sender.split("@")[0]} removed for repeated link sharing (3/3 warns).`,
+            mentions: [sender]
+          })
+
+          // 👢 Kick user
+          await sock.groupParticipantsUpdate(
+            jid,
+            [sender],
+            "remove"
+          )
+
+          // 🧹 Optional reset warns after kick
+          if (
+            global.WARN_DB &&
+            global.WARN_DB[jid] &&
+            global.WARN_DB[jid][sender]
+          ) {
+            delete global.WARN_DB[jid][sender]
+          }
+
+        } catch (e) {
+          console.log(
+            "AUTO KICK ERROR:",
+            e
+          )
+
+          await sock.sendMessage(jid, {
+            text:
+              `⚠️ @${sender.split("@")[0]} reached 3 warns but I need admin rights to remove them.`,
+            mentions: [sender]
+          })
+        }
+      }
+
+      return
+    }
+  }
+}
+
+// ================= ANTI-STATUS =================
+
+// 🚫 BLOCK STATUS VIEWING + AUTO WARN/KICK
+if (
+  group_settings.antistatus &&
+  msg.key.remoteJid === "status@broadcast"
+) {
+  try {
+
+    // 👁️ Prevent status engagement
+    await sock.readMessages([msg.key])
+
+    // ⚠️ Warn offender
+    const warnCount = await addWarn(
+      sock,
+      jid,
+      sender,
+      "Status viewing blocked"
+    )
+
+    // 🚨 AUTO KICK AT 3 WARNS
+    if (
+      warnCount >= 3 &&
+      isGroup &&
+      !isOwner &&
+      !isAdmin
+    ) {
+      try {
+
+        await sock.sendMessage(jid, {
+          text:
+            `🚫 @${sender.split("@")[0]} removed for repeated status violations (3/3 warns).`,
+          mentions: [sender]
+        })
+
+        await sock.groupParticipantsUpdate(
+          jid,
+          [sender],
+          "remove"
+        )
+
+        // 🧹 Reset warns after kick
+        if (
+          global.WARN_DB &&
+          global.WARN_DB[jid] &&
+          global.WARN_DB[jid][sender]
+        ) {
+          delete global.WARN_DB[jid][sender]
+        }
+
+      } catch (e) {
+        console.log(
+          "ANTI-STATUS AUTO KICK ERROR:",
+          e
+        )
       }
     }
+
+  } catch (e) {
+    console.log(
+      "ANTI-STATUS ERROR:",
+      e
+    )
   }
+}
 
-   if (group_settings.antistatus && msg.key.remoteJid === "status@broadcast") {
-    try {
-      await sock.readMessages([msg.key])
 
-      await addWarn(sock, jid, sender, "Status viewing blocked")
+// 📢 BLOCK STATUS MENTIONS + AUTO WARN/KICK
+if (group_settings.antistatus_mention) {
+  try {
 
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-   if (group_settings.antistatus_mention) {
     const text =
       msg.message?.extendedTextMessage?.text ||
       msg.message?.conversation ||
       ""
 
-    if (text.includes("@")) {
-      await sock.sendMessage(jid, { delete: msg.key })
+    if (
+      text.includes("@") &&
+      !isOwner &&
+      !isAdmin
+    ) {
 
-      await addWarn(sock, jid, sender, "Status mention detected")
+      // 🗑️ Delete mention
+      try {
+        await sock.sendMessage(jid, {
+          delete: msg.key
+        })
+      } catch (e) {
+        console.log(
+          "STATUS MENTION DELETE ERROR:",
+          e
+        )
+      }
 
+      // ⚠️ Warn user
+      const warnCount = await addWarn(
+        sock,
+        jid,
+        sender,
+        "Status mention detected"
+      )
+
+      // 🚫 Warning message
       await sock.sendMessage(jid, {
-        text: "🚫 Status mention blocked"
+        text:
+          `🚫 @${sender.split("@")[0]} status mention blocked (${warnCount}/3).`,
+        mentions: [sender]
       })
+
+      // 🚨 AUTO KICK
+      if (warnCount >= 3) {
+        try {
+
+          await sock.sendMessage(jid, {
+            text:
+              `👢 @${sender.split("@")[0]} removed for repeated status mentions.`,
+            mentions: [sender]
+          })
+
+          await sock.groupParticipantsUpdate(
+            jid,
+            [sender],
+            "remove"
+          )
+
+          // 🧹 Reset warns
+          if (
+            global.WARN_DB &&
+            global.WARN_DB[jid] &&
+            global.WARN_DB[jid][sender]
+          ) {
+            delete global.WARN_DB[jid][sender]
+          }
+
+        } catch (e) {
+          console.log(
+            "STATUS MENTION AUTO KICK ERROR:",
+            e
+          )
+
+          await sock.sendMessage(jid, {
+            text:
+              `⚠️ @${sender.split("@")[0]} reached 3 warns but I need admin rights to remove them.`,
+            mentions: [sender]
+          })
+        }
+      }
     }
+
+  } catch (e) {
+    console.log(
+      "ANTI-STATUS-MENTION ERROR:",
+      e
+    )
   }
+}
 
    if (isGroup && group_settings.antibadword && body) {
     const badwords = ["fuck", "shit", "bitch", "asshole"]
@@ -5522,13 +5767,13 @@ ${PREFIX}welcome off`
 
   if (action === "on") {
     settings.welcome = true
-    saveWelcomeDB()
+    saveWelcomeDB(global.group_settings)
     return reply("👋 Welcome enabled")
   }
 
   if (action === "off") {
     settings.welcome = false
-    saveWelcomeDB()
+    saveWelcomeDB(global.group_settings)
     return reply("🔕 Welcome disabled")
   }
 },
@@ -5552,13 +5797,13 @@ ${PREFIX}goodbye off`
 
   if (action === "on") {
     settings.goodbye = true
-    saveWelcomeDB()
+    saveWelcomeDB(global.group_settings)
     return reply("🚪 Goodbye enabled")
   }
 
   if (action === "off") {
     settings.goodbye = false
-    saveWelcomeDB()
+    saveWelcomeDB(global.group_settings)
     return reply("🔕 Goodbye disabled")
   }
 },
@@ -5571,7 +5816,7 @@ setwelcome: async () => {
 
   settings.welcomeText = q
 
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply("✅ Welcome message updated")
 },
@@ -5585,7 +5830,7 @@ setgoodbye: async () => {
 
   settings.goodbyeText = q
 
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply("✅ Goodbye message updated")
 },
@@ -5621,7 +5866,7 @@ resetwelcome: async () => {
 
   settings.welcomeText = DEFAULT_WELCOME
 
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply("♻️ Welcome reset")
 },
@@ -5633,7 +5878,7 @@ resetgoodbye: async () => {
 
   settings.goodbyeText = DEFAULT_GOODBYE
 
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply("♻️ Goodbye reset")
 },
@@ -5836,7 +6081,7 @@ welcomecolor: async () => {
 
   const settings = getGroup_Settings(jid)
   settings.welcomecolor = q
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`🎨 Welcome color set to: ${q}`)
 },
@@ -5848,7 +6093,7 @@ goodbyecolor: async () => {
 
   const settings = getGroup_Settings(jid)
   settings.goodbyecolor = q
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`🎨 Goodbye color set to: ${q}`)
 },
@@ -5870,7 +6115,7 @@ ${PREFIX}welcomedelay 5
 
   const settings = getGroup_Settings(jid)
   settings.welcomedelay = seconds
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`⏳ Welcome delay set to ${seconds}s`)
 },
@@ -5891,7 +6136,7 @@ ${PREFIX}ruleswelcome off`
 
   const settings = getGroup_Settings(jid)
   settings.ruleswelcome = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`📜 Rules Welcome ${action === "on" ? "enabled" : "disabled"}`)
 },
@@ -5913,7 +6158,7 @@ ${PREFIX}autorole off`
 
   const settings = getGroup_Settings(jid)
   settings.autorole = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`📍 Auto Role ${action === "on" ? "enabled" : "disabled"}`)
 },
@@ -5935,7 +6180,7 @@ ${PREFIX}autopromote off`
 
   const settings = getGroup_Settings(jid)
   settings.autopromote = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`👑 Auto Promote ${action === "on" ? "enabled" : "disabled"}`)
 },
@@ -5957,7 +6202,7 @@ ${PREFIX}autodemote off`
 
   const settings = getGroup_Settings(jid)
   settings.autodemote = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`⬇️ Auto Demote ${action === "on" ? "enabled" : "disabled"}`)
 },
@@ -5979,7 +6224,7 @@ ${PREFIX}autoclean off`
 
   const settings = getGroup_Settings(jid)
   settings.autoclean = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`🧹 Auto Clean ${action === "on" ? "enabled" : "disabled"}`)
 },
@@ -6001,7 +6246,7 @@ ${PREFIX}autogift off`
 
   const settings = getGroup_Settings(jid)
   settings.autogift = action === "on"
-  saveWelcomeDB()
+  saveWelcomeDB(global.group_settings)
 
   reply(`🎁 Auto Gift ${action === "on" ? "enabled" : "disabled"}`)
 },
