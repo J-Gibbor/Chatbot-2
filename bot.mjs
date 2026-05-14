@@ -4948,7 +4948,7 @@ alive: async () => {
   const hours = Math.floor(minutes / 60)
 
   reply(`
-🤖 BOSS BOT STATS
+🤖 BOSS' BOT STATS
 
 ⏱️ Uptime: ${hours}h ${minutes % 60}m ${seconds % 60}s
 💬 Messages: ${BOT_STATS.messages}
