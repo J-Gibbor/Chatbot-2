@@ -107,7 +107,7 @@ words: {
   bye: ["Bye 👋", "See you 😄", "Take care 💙"],
   help: ["Type .menu for commands 📋", "Need help? Use .menu 👀"],
 
-  owner: ["👑 My owner is amazing", "👑 Respect the owner", "I was created by Gibbor AKA GibborLee🧠"],
+  owner: ["👑 My owner is amazing", "👑 Respect the owner", "I was created by Neche AKA Boss🧠"],
   menu: ["📋 Type .menu to explore commands"],
   ping: ["🏓 Pong!"],
   alive: ["💚 I'm active and running"],
@@ -511,7 +511,7 @@ const addWarn = async (sock, jid, user, reason) => {
 // ==== STICKER META ====
 
 const STICKER_META = {
-  packname: "GIBBORLEE BOT 🤖",
+  packname: "BOSS BOT 🤖",
   author: "Sticker Engine v2"
 }
 
@@ -2457,6 +2457,7 @@ if (isDM) {
 },
 
   // 👁️ VIEW-ONCE CONVERTER (turn view-once into normal media)
+// 👁️ VIEW-ONCE CONVERTER (Owner tagged + custom reveal caption)
 viewonce: async () => {
   if (!isOwner) {
     return reply("❌ Owner only")
@@ -2475,11 +2476,18 @@ viewonce: async () => {
 
   try {
 
+    // 👑 Owner mention target
+    const ownerJid =
+      Array.isArray(BOT_OWNERS) &&
+      BOT_OWNERS.length
+        ? BOT_OWNERS[0]
+        : sender
+
     // 🔍 Detect message type
     let type = Object.keys(quoted)[0]
     let content = quoted[type]
 
-    // 🛡️ Handle WhatsApp wrapped viewOnceMessage
+    // 🛡️ Handle wrapped viewOnce
     if (type === "viewOnceMessage") {
       const inner =
         content?.message
@@ -2510,9 +2518,19 @@ viewonce: async () => {
       ])
     }
 
-    // 📝 Keep original caption
-    const caption =
-      content.caption
+    // 📝 Original caption
+    const originalCaption =
+      String(
+        content.caption ||
+        content.text ||
+        ""
+      ).trim()
+
+    // 👁️ Custom reveal caption
+    const finalCaption =
+      originalCaption
+        ? `👁️ *Reaveled By The Master*\n@${ownerJid.split("@")[0]} For You 🙃\n\n${originalCaption}`
+        : `👁️ *Reaveled By The Master*\n@${ownerJid.split("@")[0]} For You 🙃`
 
     // 📤 Build payload
     let payload = {}
@@ -2521,8 +2539,8 @@ viewonce: async () => {
     if (type === "imageMessage") {
       payload = {
         image: buffer,
-        caption:
-          `👁️ *Review For The Master Boss*\n\n${caption}`
+        caption: finalCaption,
+        mentions: [ownerJid]
       }
 
     // 🎥 VIDEO
@@ -2531,8 +2549,8 @@ viewonce: async () => {
     ) {
       payload = {
         video: buffer,
-        caption:
-          `👁️ *Review For The Master Boss*\n\n${caption}`
+        caption: finalCaption,
+        mentions: [ownerJid]
       }
 
     // 🔊 AUDIO / VOICE
@@ -2557,11 +2575,13 @@ viewonce: async () => {
           "application/octet-stream",
         fileName:
           content.fileName ||
-          `viewonce_${Date.now()}`
+          `viewonce_${Date.now()}`,
+        caption: finalCaption,
+        mentions: [ownerJid]
       }
     }
 
-    // 📬 Send recovered normal version
+    // 📬 Send recovered version
     await sock.sendMessage(
       jid,
       payload,
