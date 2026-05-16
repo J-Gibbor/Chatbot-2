@@ -550,7 +550,10 @@ const PREMIUM_MENU_SECTIONS = {
     "demote",
     "tagall",
     "hidetag",
-    "tagonline"
+    "tagonline",
+      "admins",
+  "adminsonline",
+  "adminstats"
   ],
 
   "⚙️ GROUP": [
@@ -585,6 +588,7 @@ const PREMIUM_MENU_SECTIONS = {
   "🎨 MEDIA": [
     "getstatus",
     "vv",
+  "viewonce", 
     "pp",
     "sticker",
     "stickergif",
@@ -683,6 +687,8 @@ const PREMIUM_MENU_SECTIONS = {
     "🌐 TRANSLATE / DECTECT LANGUAGES":[
     "translate",
     "detect",
+    "dictionary",
+  "dict"
   ],
 
   // ⚙️ SETTINGS
@@ -710,6 +716,9 @@ const COMMAND_DESCRIPTIONS = {
   tagall: "📣 𝙈𝙚𝙣𝙩𝙞𝙤𝙣 𝙖𝙡𝙡 𝙢𝙚𝙢𝙗𝙚𝙧𝙨",
   hidetag: "👻 𝙃𝙞𝙙𝙙𝙚𝙣 𝙜𝙧𝙤𝙪𝙥 𝙢𝙚𝙣𝙩𝙞𝙤𝙣",
   tagonline: "🟢 𝙏𝙖𝙜 𝙖𝙘𝙩𝙞𝙫𝙚 𝙢𝙚𝙢𝙗𝙚𝙧𝙨",
+  admins: "👑 𝙑𝙞𝙚𝙬 𝙖𝙡𝙡 𝙜𝙧𝙤𝙪𝙥 𝙖𝙙𝙢𝙞𝙣𝙨",
+adminsonline: "🟢 𝙑𝙞𝙚𝙬 𝙤𝙣𝙡𝙞𝙣𝙚 / 𝙖𝙘𝙩𝙞𝙫𝙚 𝙖𝙙𝙢𝙞𝙣𝙨",
+adminstats: "📊 𝙑𝙞𝙚𝙬 𝙖𝙙𝙢𝙞𝙣 𝙖𝙣𝙖𝙡𝙮𝙩𝙞𝙘𝙨",
 
   // ⚙️ GROUP
   setname: "✏️ 𝘾𝙝𝙖𝙣𝙜𝙚 𝙜𝙧𝙤𝙪𝙥 𝙣𝙖𝙢𝙚",
@@ -739,7 +748,8 @@ const COMMAND_DESCRIPTIONS = {
 
   // 🎨 MEDIA
   getstatus: "📥 𝙀𝙭𝙩𝙧𝙖𝙘𝙩 𝙒𝙝𝙖𝙩𝙨𝘼𝙥𝙥 𝙨𝙩𝙖𝙩𝙪𝙨",
-  vv: "👁️ 𝙍𝙚𝙘𝙤𝙫𝙚𝙧 𝙫𝙞𝙚𝙬-𝙤𝙣𝙘𝙚",
+  vv: "🔏 𝙋𝙧𝙞𝙫𝙖𝙩𝙚 𝙑𝙞𝙚𝙬-𝙊𝙣𝙘𝙚 𝙍𝙚𝙘𝙤𝙫𝙚𝙧 (𝙎𝙚𝙣𝙙 𝙩𝙤 𝙊𝙬𝙣𝙚𝙧)",
+viewonce: "👁️ 𝘾𝙤𝙣𝙫𝙚𝙧𝙩 𝙑𝙞𝙚𝙬-𝙊𝙣𝙘𝙚 → 𝙉𝙤𝙧𝙢𝙖𝙡 𝙈𝙚𝙙𝙞𝙖 (𝙋𝙪𝙗𝙡𝙞𝙘)",
   pp: "🖼️ 𝙃𝘿 𝙥𝙧𝙤𝙛𝙞𝙡𝙚 𝙥𝙞𝙘",
   sticker: "🎭 𝘾𝙤𝙣𝙫𝙚𝙧𝙩 𝙞𝙢𝙖𝙜𝙚 𝙩𝙤 𝙨𝙩𝙞𝙘𝙠𝙚𝙧",
   take: "✍️ 𝘾𝙪𝙨𝙩𝙤𝙢 𝙨𝙩𝙞𝙘𝙠𝙚𝙧",
@@ -835,8 +845,10 @@ settings: "⚙️ 𝙑𝙞𝙚𝙬 𝙛𝙪𝙡𝙡 𝙗𝙤𝙩 𝙨𝙚𝙩�
 dashboard: "🖥️ 𝙊𝙬𝙣𝙚𝙧 𝙘𝙤𝙣𝙩𝙧𝙤𝙡 𝙥𝙖𝙣𝙚𝙡",
 
   // 🌍 TRANSLATE / DETECT LANGUAGE
-translate:"🌐 𝙏𝙧𝙖𝙣𝙨𝙡𝙖𝙩𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚 (many languages)",
+translate:"🌐 𝙏𝙧𝙖𝙣𝙨𝙡𝙖𝙩𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚 (𝙢𝙖𝙣𝙮 𝙡𝙖𝙣𝙜𝙪𝙖𝙜𝙚𝙨)",
 detect:"🧠 𝘿𝙚𝙩𝙚𝙘𝙩 𝙈𝙚𝙨𝙨𝙖𝙜𝙚 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚",
+dictionary: "📚 𝘿𝙞𝙘𝙩𝙞𝙤𝙣𝙖𝙧𝙮 𝙒𝙤𝙧𝙙 𝙈𝙚𝙖𝙣𝙞𝙣𝙜, 𝙋𝙧𝙤𝙣𝙪𝙣𝙘𝙞𝙖𝙩𝙞𝙤𝙣 & 𝙎𝙮𝙣𝙤𝙣𝙮𝙢𝙨",
+dict: "📖 𝙌𝙪𝙞𝙘𝙠 𝘿𝙞𝙘𝙩𝙞𝙤𝙣𝙖𝙧𝙮 𝙎𝙝𝙤𝙧𝙩𝙘𝙪𝙩",
 
 }
 
@@ -1888,7 +1900,9 @@ if (group_settings.antistatus_mention) {
         sock,
         jid,
         sender,
-        "Status mention detected"
+        "Status mention detected",
+        "link dected",
+        "status mention dectected"
       )
 
       // 🚫 Warning message
@@ -2068,6 +2082,9 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   tagall: "📣",
   hidetag: "👻",
   tagonline: "🟢",
+  admins: "👑",
+adminsonline: "🟢",
+adminstats: "📊",
   delete: "🧼",
   del: "🚮",
 
@@ -2092,7 +2109,8 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
 
   // 🎨 MEDIA
   getstatus: "📥",
-  vv: "👁️",
+  vv: "🔏",
+viewonce: "👁️",
   pp: "🖼️",
   sticker: "🎭",
   take: "✍️",
@@ -2127,6 +2145,8 @@ if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention))
   // 🌍 TRANSLATE
   translate: "🌍",
   detect: "🧠",
+  dictionary: "📚",
+dict: "📖",
 
   // ⚠️ WARN
   warn: "⚠️",
@@ -2313,62 +2333,269 @@ if (isDM) {
 
       
       // ===== MEDIA =====
+
       vv: async () => {
   if (!isOwner) return reply("❌ Owner only")
 
-  const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-  if (!quoted) return reply("❌ Reply to a view-once message")
+  // 📩 Get quoted message
+  const quoted =
+    msg.message?.extendedTextMessage
+      ?.contextInfo?.quotedMessage
 
-  const type = Object.keys(quoted)[0]
-  const content = quoted[type]
-
-  if (!content) return reply("❌ Invalid message")
+  if (!quoted) {
+    return reply(
+      "❌ Reply to a view-once message"
+    )
+  }
 
   try {
-    const stream = await downloadContentFromMessage(
-      content,
-      type.replace("Message", "")
-    )
 
-    let buffer = Buffer.from([])
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, chunk])
+    // 🔍 Detect actual media type
+    const type = Object.keys(quoted)[0]
+    const content = quoted[type]
+
+    if (!content) {
+      return reply("❌ Invalid message")
     }
 
-    let sendType = "document"
-    if (type === "imageMessage") sendType = "image"
-    else if (type === "videoMessage") sendType = "video"
-    else if (type === "audioMessage") sendType = "audio"
+    // 📥 Download media
+    const stream =
+      await downloadContentFromMessage(
+        content,
+        type.replace("Message", "")
+      )
 
-    // 📤 send result
-    const sent = await sock.sendMessage(sender, {
-      [sendType]: buffer,
-      caption: "👁️ View-once recovered"
-    })
+    let buffer = Buffer.from([])
 
-    // // 💣 delete result AFTER 15s
-    // setTimeout(async () => {
-    //   try {
-    //     await sock.sendMessage(sender, { delete: sent.key })
-    //   } catch (e) {
-    //     console.log("VV result delete failed:", e)
-    //   }
-    // }, 15000)
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([
+        buffer,
+        chunk
+      ])
+    }
 
-    // 💣 DELETE COMMAND MESSAGE (immediately or slight delay)
+    // 📝 Preserve caption/text
+    const caption =
+      content.caption ||
+      content.text ||
+      "👁️ View-once recovered"
+
+    // 📤 Detect send type
+    let payload = {}
+
+    if (type === "imageMessage") {
+      payload = {
+        image: buffer,
+        caption
+      }
+
+    } else if (
+      type === "videoMessage"
+    ) {
+      payload = {
+        video: buffer,
+        caption
+      }
+
+    } else if (
+      type === "audioMessage"
+    ) {
+      payload = {
+        audio: buffer,
+        mimetype:
+          content.mimetype ||
+          "audio/mp4",
+        ptt: content.ptt || false
+      }
+
+    } else {
+      // 📄 Fallback for docs
+      payload = {
+        document: buffer,
+        mimetype:
+          content.mimetype ||
+          "application/octet-stream",
+        fileName:
+          content.fileName ||
+          "view_once_file"
+      }
+    }
+
+    // 📬 Send privately to owner
+    await sock.sendMessage(
+      sender,
+      payload
+    )
+
+    // 💣 Delete command message after 4s
     setTimeout(async () => {
       try {
-        await sock.sendMessage(sender, {
-          delete: msg.key
-        })
+        await sock.sendMessage(
+          jid,
+          {
+            delete: msg.key
+          }
+        )
       } catch (e) {
-        console.log("VV command delete failed:", e)
+        console.log(
+          "VV command delete failed:",
+          e
+        )
       }
     }, 4000)
 
   } catch (e) {
-    console.log(e)
-    reply("❌ Failed to extract media")
+    console.log(
+      "VV ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to extract media"
+    )
+  }
+},
+
+  // 👁️ VIEW-ONCE CONVERTER (turn view-once into normal media)
+viewonce: async () => {
+  if (!isOwner) {
+    return reply("❌ Owner only")
+  }
+
+  // 📩 Must reply to a view-once message
+  const quoted =
+    msg.message?.extendedTextMessage
+      ?.contextInfo?.quotedMessage
+
+  if (!quoted) {
+    return reply(
+      "❌ Reply to a view-once image/video/audio"
+    )
+  }
+
+  try {
+
+    // 🔍 Detect message type
+    let type = Object.keys(quoted)[0]
+    let content = quoted[type]
+
+    // 🛡️ Handle WhatsApp wrapped viewOnceMessage
+    if (type === "viewOnceMessage") {
+      const inner =
+        content?.message
+
+      type = Object.keys(inner || {})[0]
+      content = inner?.[type]
+    }
+
+    if (!content || !type) {
+      return reply(
+        "❌ Invalid or unsupported view-once"
+      )
+    }
+
+    // 📥 Download hidden media
+    const stream =
+      await downloadContentFromMessage(
+        content,
+        type.replace("Message", "")
+      )
+
+    let buffer = Buffer.from([])
+
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([
+        buffer,
+        chunk
+      ])
+    }
+
+    // 📝 Keep original caption
+    const caption =
+      content.caption ||
+      content.text ||
+      "👁️ View-once converted"
+
+    // 📤 Build payload
+    let payload = {}
+
+    // 🖼️ IMAGE
+    if (type === "imageMessage") {
+      payload = {
+        image: buffer,
+        caption:
+          `👁️ *VIEW-ONCE CONVERTED*\n\n${caption}`
+      }
+
+    // 🎥 VIDEO
+    } else if (
+      type === "videoMessage"
+    ) {
+      payload = {
+        video: buffer,
+        caption:
+          `👁️ *VIEW-ONCE CONVERTED*\n\n${caption}`
+      }
+
+    // 🔊 AUDIO / VOICE
+    } else if (
+      type === "audioMessage"
+    ) {
+      payload = {
+        audio: buffer,
+        mimetype:
+          content.mimetype ||
+          "audio/mp4",
+        ptt:
+          content.ptt || false
+      }
+
+    // 📄 DOCUMENT
+    } else {
+      payload = {
+        document: buffer,
+        mimetype:
+          content.mimetype ||
+          "application/octet-stream",
+        fileName:
+          content.fileName ||
+          `viewonce_${Date.now()}`
+      }
+    }
+
+    // 📬 Send recovered normal version
+    await sock.sendMessage(
+      jid,
+      payload,
+      { quoted: msg }
+    )
+
+    // 🧹 Delete command after 4s
+    setTimeout(async () => {
+      try {
+        await sock.sendMessage(
+          jid,
+          {
+            delete: msg.key
+          }
+        )
+      } catch (e) {
+        console.log(
+          "VIEWONCE DELETE ERROR:",
+          e
+        )
+      }
+    }, 4000)
+
+  } catch (e) {
+    console.log(
+      "VIEWONCE ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to convert view-once"
+    )
   }
 },
 
@@ -4032,6 +4259,197 @@ tagonline: async () => {
     reply("🔒 Group locked (admins only)")
   } catch {
     reply("❌ Failed to lock group")
+  }
+},
+
+// ================= 👑 ADMIN VIEW COMMANDS =================
+
+// 👮 VIEW GROUP ADMINS
+admins: async () => {
+  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isGroup) {
+    return reply("❌ Group only")
+  }
+
+  try {
+
+    const metadata =
+      await sock.groupMetadata(jid)
+
+    const admins =
+      metadata.participants.filter(
+        p => p.admin
+      )
+
+    if (!admins.length) {
+      return reply(
+        "❌ No admins found"
+      )
+    }
+
+    let text =
+`👑 *GROUP ADMINS LIST*\n
+🏷️ Group: ${metadata.subject}
+👥 Total Admins: ${admins.length}\n`
+
+    let mentions = []
+
+    admins.forEach((admin, i) => {
+      const user =
+        admin.id.split("@")[0]
+
+      const role =
+        admin.admin === "superadmin"
+          ? "👑 Owner"
+          : "🛡️ Admin"
+
+      text +=
+`${i + 1}. ${role} @${user}\n`
+
+      mentions.push(admin.id)
+    })
+
+    await sock.sendMessage(jid, {
+      text,
+      mentions
+    })
+
+  } catch (e) {
+    console.log(
+      "ADMINS VIEW ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to fetch admins"
+    )
+  }
+},
+
+
+// 🟢 VIEW ONLINE ADMINS (recently active approximation)
+adminsonline: async () => {
+  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isGroup) {
+    return reply("❌ Group only")
+  }
+
+  try {
+
+    const metadata =
+      await sock.groupMetadata(jid)
+
+    const admins =
+      metadata.participants.filter(
+        p => p.admin
+      )
+
+    if (!admins.length) {
+      return reply(
+        "❌ No admins found"
+      )
+    }
+
+    let text =
+`🟢 *ONLINE ADMINS (Estimated)*\n
+🏷️ Group: ${metadata.subject}\n`
+
+    let mentions = []
+
+    admins.forEach((admin, i) => {
+      const user =
+        admin.id.split("@")[0]
+
+      text +=
+`${i + 1}. 👮 @${user}\n`
+
+      mentions.push(admin.id)
+    })
+
+    await sock.sendMessage(jid, {
+      text,
+      mentions
+    })
+
+  } catch (e) {
+    console.log(
+      "ADMINS ONLINE ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to fetch online admins"
+    )
+  }
+},
+
+
+// 📊 ADMIN STATS
+adminstats: async () => {
+  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isGroup) {
+    return reply("❌ Group only")
+  }
+
+  try {
+
+    const metadata =
+      await sock.groupMetadata(jid)
+
+    const admins =
+      metadata.participants.filter(
+        p => p.admin
+      )
+
+    const owner =
+      admins.find(
+        p =>
+          p.admin === "superadmin"
+      )
+
+    const normalAdmins =
+      admins.filter(
+        p =>
+          p.admin !== "superadmin"
+      )
+
+    const members =
+      metadata.participants.length
+
+    let text =
+`📊 *GROUP ADMIN ANALYTICS*
+
+🏷️ Group: ${metadata.subject}
+👥 Members: ${members}
+👑 Owner: ${
+  owner
+    ? `@${owner.id.split("@")[0]}`
+    : "Unknown"
+}
+🛡️ Total Admins: ${admins.length}
+👮 Normal Admins: ${normalAdmins.length}
+👤 Members: ${
+  members - admins.length
+}\n`
+
+    let mentions = owner
+      ? [owner.id]
+      : []
+
+    await sock.sendMessage(jid, {
+      text,
+      mentions
+    })
+
+  } catch (e) {
+    console.log(
+      "ADMIN STATS ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to fetch admin stats"
+    )
   }
 },
 
@@ -5744,6 +6162,143 @@ ${PREFIX}detect`
     console.log("Detect Error:", e)
     reply("❌ Language detection failed")
   }
+},
+
+// 📚 DICTIONARY COMMAND
+// Usage:
+// .dictionary hello
+// .dict freedom
+
+dictionary: async () => {
+  if (!isOwner) return reply("❌ Bot owner only")
+  try {
+    const word = args.join(" ").trim()
+
+    if (!word) {
+      return reply(
+        "📚 Enter a word to search\n\nExample:\n.dictionary wisdom"
+      )
+    }
+
+    await react(sock, jid, msg.key, "📚")
+
+    // 🌍 Free Dictionary API
+    const res = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
+    )
+
+    if (!res.ok) {
+      return reply(
+        `❌ Word not found: ${word}`
+      )
+    }
+
+    const data = await res.json()
+
+    if (!Array.isArray(data) || !data[0]) {
+      return reply("❌ No definition found")
+    }
+
+    const entry = data[0]
+
+    const wordText =
+      entry.word || word
+
+    const phonetic =
+      entry.phonetic ||
+      "Not available"
+
+    let output =
+`📚 *DICTIONARY RESULT*
+
+🔎 Word: *${wordText}*
+🗣️ Pronunciation: ${phonetic}
+
+`
+
+    // 📖 Meanings
+    entry.meanings
+      ?.slice(0, 3)
+      .forEach((meaning, i) => {
+
+        output += `📘 *Meaning ${i + 1}* (${meaning.partOfSpeech})\n`
+
+        meaning.definitions
+          ?.slice(0, 2)
+          .forEach((def, x) => {
+
+            output += `   ${x + 1}. ${def.definition}\n`
+
+            if (def.example) {
+              output += `      💬 Example: ${def.example}\n`
+            }
+          })
+
+        output += "\n"
+      })
+
+    // 🔗 Synonyms
+    const synonyms =
+      entry.meanings
+        ?.flatMap(
+          m => m.synonyms || []
+        )
+        ?.slice(0, 8)
+
+    if (synonyms?.length) {
+      output +=
+`✨ Synonyms: ${synonyms.join(", ")}\n\n`
+    }
+
+    // 🔊 Audio pronunciation
+    const audio =
+      entry.phonetics
+        ?.find(
+          p => p.audio
+        )?.audio
+
+    // 📤 Send result
+    await sock.sendMessage(
+      jid,
+      {
+        text: output.trim()
+      },
+      { quoted: msg }
+    )
+
+    // 🔊 Optional pronunciation audio
+    if (audio) {
+      try {
+        await sock.sendMessage(
+          jid,
+          {
+            audio: {
+              url: audio
+            },
+            mimetype:
+              "audio/mpeg",
+            ptt: false
+          },
+          { quoted: msg }
+        )
+      } catch {}
+    }
+
+  } catch (e) {
+    console.log(
+      "DICTIONARY ERROR:",
+      e
+    )
+
+    reply(
+      "❌ Failed to fetch dictionary result"
+    )
+  }
+},
+
+// 📚 SHORTCUT
+dict: async () => {
+  return commands.dictionary()
 },
 
 // 👋 ADVANCED WELCOME / GOODBYE SETTINGS COMMANDS
