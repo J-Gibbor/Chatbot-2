@@ -452,30 +452,3 @@
     "antistatus": false,
     "antistatus_mention": false
   },
-  "120363410025103247@g.us": {
-    "antidelete": false,
-    "antibadword": false,
-    "antilink": true,
-    "antistatus": true,
-    "antistatus_mention": true,
-    "welcome": true,
-    "goodbye": true,
-    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
-    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
-    "welcomeImg": null,
-    "goodbyeImg": null
-  },
-  "120363217726138169@g.us": {
-    "antidelete": false,
-    "antibadword": false,
-    "antilink": false,
-    "antistatus": false,
-    "antistatus_mention": false,
-    "welcome": false,
-    "goodbye": false,
-    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
-    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
-    "welcomeImg": null,
-    "goodbyeImg": null
-  }
-}
