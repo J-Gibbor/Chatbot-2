@@ -2512,9 +2512,7 @@ viewonce: async () => {
 
     // 📝 Keep original caption
     const caption =
-      content.caption ||
-      content.text ||
-      "👁️ View-once converted"
+      content.caption
 
     // 📤 Build payload
     let payload = {}
@@ -2524,7 +2522,7 @@ viewonce: async () => {
       payload = {
         image: buffer,
         caption:
-          `👁️ *VIEW-ONCE CONVERTED*\n\n${caption}`
+          `👁️ *Review For The Master Boss*\n\n${caption}`
       }
 
     // 🎥 VIDEO
@@ -2534,7 +2532,7 @@ viewonce: async () => {
       payload = {
         video: buffer,
         caption:
-          `👁️ *VIEW-ONCE CONVERTED*\n\n${caption}`
+          `👁️ *Review For The Master Boss*\n\n${caption}`
       }
 
     // 🔊 AUDIO / VOICE
