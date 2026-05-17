@@ -50,5 +50,44 @@
     "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
     "welcomeImg": null,
     "goodbyeImg": null
+  },
+  "120363230243122300@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "79921053491262@lid": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "2349021540840@s.whatsapp.net": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
   }
 }
