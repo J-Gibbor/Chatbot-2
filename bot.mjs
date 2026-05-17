@@ -7134,23 +7134,63 @@ ship: async () => {
 },
 
 pair: async () => {
+  // 👑 Owner only
+  if (!isOwner) return reply("❌ Bot owner only")
+
+  // 👥 Group only
   if (!isGroup) return reply("❌ Group only")
-     if (!isOwner) return reply("❌ Bot Owner only")
 
-  const members = participants.map(p => p.id)
+  await react(sock, jid, msg.key, "💞")
 
-  if (members.length < 2) return reply("❌ Not enough members")
+  try {
+    // ✅ Get valid group members except bot
+    const members = participants
+      .map(p => p.id)
+      .filter(id => id !== sock.user.id)
 
-  const p1 = members[Math.floor(Math.random() * members.length)]
-  let p2 = members[Math.floor(Math.random() * members.length)]
+    if (members.length < 2) {
+      return reply("❌ Not enough members to pair")
+    }
 
-  while (p1 === p2) {
-    p2 = members[Math.floor(Math.random() * members.length)]
+    // 🎲 Random first person
+    const person1 = members[Math.floor(Math.random() * members.length)]
+
+    // 🎲 Random second person (must be different)
+    let person2
+    do {
+      person2 = members[Math.floor(Math.random() * members.length)]
+    } while (person1 === person2)
+
+    // 💘 Compatibility meter
+    const percent = Math.floor(Math.random() * 41) + 60 // 60–100%
+
+    // 🏷️ Pair title
+    let result
+    if (percent >= 95) result = "💍 Marriage Loading!"
+    else if (percent >= 85) result = "🔥 Perfect Match!"
+    else if (percent >= 75) result = "😍 Great Pair!"
+    else result = "😂 Wahala Pair!"
+
+    // 📩 Send result
+    await sock.sendMessage(
+      jid,
+      {
+        text:
+`💞 *OWNER PAIR GAME*
+
+@${person1.split("@")[0]} ❤️ @${person2.split("@")[0]}
+
+💘 Compatibility: *${percent}%*
+${result}`,
+        mentions: [person1, person2]
+      },
+      { quoted: msg }
+    )
+
+  } catch (e) {
+    console.log("PAIR ERROR:", e)
+    reply("❌ Failed to generate pair")
   }
-
-  reply(`💞 *PERFECT PAIR*\n\n@${p1.split("@")[0]} ❤️ @${p2.split("@")[0]}`, {
-    mentions: [p1, p2]
-  })
 },
 
 fact: async () => {
