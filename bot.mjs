@@ -72,6 +72,7 @@ let reconnecting = false
 global.STATUS_DB = global.STATUS_DB || []
 global.STATUS_HASH = new Set()
 const pairCache = new Set()
+
 // ================= RUNTIME FORMATTER =================
 
 function formatRuntime(ms) {
@@ -7134,70 +7135,23 @@ ship: async () => {
 },
 
 pair: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
   if (!isGroup) return reply("❌ Group only")
+     if (!isOwner) return reply("❌ Bot Owner only")
 
-  try {
-    // ✅ FIX: get participants properly
-    const groupMeta = await sock.groupMetadata(jid)
+  const members = participants.map(p => p.id)
 
-    const members = groupMeta.participants
-      .map(p => p.id)
-      .filter(id => id !== sock.user.id)
+  if (members.length < 2) return reply("❌ Not enough members")
 
-    if (members.length < 2) {
-      return reply("❌ Not enough members to pair")
-    }
+  const p1 = members[Math.floor(Math.random() * members.length)]
+  let p2 = members[Math.floor(Math.random() * members.length)]
 
-    let person1, person2, pairKey
-    let attempts = 0
-    const maxAttempts = 30
-
-    do {
-      person1 = members[Math.floor(Math.random() * members.length)]
-
-      do {
-        person2 = members[Math.floor(Math.random() * members.length)]
-      } while (person1 === person2)
-
-      const sorted = [person1, person2].sort()
-      pairKey = `${sorted[0]}|${sorted[1]}`
-
-      attempts++
-
-      if (!pairCache.has(pairKey)) break
-
-    } while (attempts < maxAttempts)
-
-    if (pairCache.has(pairKey)) {
-      pairCache.clear()
-    }
-
-    pairCache.add(pairKey)
-
-    const percent = Math.floor(Math.random() * 41) + 60
-
-    let result =
-      percent >= 95 ? "💍 Marriage Loading!" :
-      percent >= 85 ? "🔥 Perfect Match!" :
-      percent >= 75 ? "😍 Great Pair!" :
-      "😂 Wahala Pair!"
-
-    await sock.sendMessage(jid, {
-      text:
-`💞 *UNIQUE PAIR GAME*
-
-@${person1.split("@")[0]} ❤️ @${person2.split("@")[0]}
-
-💘 Compatibility: *${percent}%*
-${result}`,
-      mentions: [person1, person2]
-    }, { quoted: msg })
-
-  } catch (e) {
-    console.log("PAIR ERROR:", e)
-    reply("❌ Failed to generate pair")
+  while (p1 === p2) {
+    p2 = members[Math.floor(Math.random() * members.length)]
   }
+
+  reply(`💞 *PERFECT PAIR*\n\n@${p1.split("@")[0]} ❤️ @${p2.split("@")[0]}`, {
+    mentions: [p1, p2]
+  })
 },
 
 fact: async () => {
