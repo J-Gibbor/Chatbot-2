@@ -1,1 +1,54 @@
-{}
+{
+  "120363410025103247@g.us": {
+    "antidelete": false,
+    "antibadword": true,
+    "antilink": true,
+    "antistatus": true,
+    "antistatus_mention": true,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "status@broadcast": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "2347044625110@s.whatsapp.net": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "231585072828587@lid": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  }
+}

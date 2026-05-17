@@ -107,7 +107,7 @@ words: {
   bye: ["Bye 👋", "See you 😄", "Take care 💙"],
   help: ["Type .menu for commands 📋", "Need help? Use .menu 👀"],
 
-  owner: ["👑 My owner is amazing", "👑 Respect the owner", "I was created by Neche AKA Boss🧠"],
+  owner: ["👑 My owner is amazing", "👑 Respect the owner", "I was created by Neche AKA Boss"],
   menu: ["📋 Type .menu to explore commands"],
   ping: ["🏓 Pong!"],
   alive: ["💚 I'm active and running"],
@@ -1715,6 +1715,139 @@ await sock.sendMessage(id, {
   }
 })
 
+// ================= HANDLE AUTO WARN (REAL COUNT FIX) =================
+async function handleAutoWarn(
+  sock,
+  jid,
+  sender,
+  reason,
+  msg
+) {
+  try {
+    // 🚫 Skip owner/admin
+    if (isOwner || isAdmin) return 0
+
+    // 🔥 Always get latest DB
+    loadWarnDB()
+
+    // 🔥 Real group jid
+    const groupJid =
+      msg?.key?.remoteJid || jid
+
+    // ================= FORCE USER RECORD =================
+    if (!global.WARN_DB[groupJid]) {
+      global.WARN_DB[groupJid] = {}
+    }
+
+    // 🔥 New user
+    if (!global.WARN_DB[groupJid][sender]) {
+      global.WARN_DB[groupJid][sender] = {
+        count: 0,
+        reasons: []
+      }
+    }
+
+    // 🔥 Fix old number format
+    if (
+      typeof global.WARN_DB[groupJid][sender] !==
+      "object"
+    ) {
+      global.WARN_DB[groupJid][sender] = {
+        count:
+          Number(
+            global.WARN_DB[groupJid][sender]
+          ) || 0,
+        reasons: []
+      }
+    }
+
+    // 🔥 Fix reasons
+    if (
+      !Array.isArray(
+        global.WARN_DB[groupJid][sender]
+          .reasons
+      )
+    ) {
+      global.WARN_DB[groupJid][sender].reasons =
+        []
+    }
+
+    // ================= REAL WARN INCREMENT =================
+    global.WARN_DB[groupJid][sender].count += 1
+
+    if (reason) {
+      global.WARN_DB[groupJid][sender].reasons.push(
+        reason
+      )
+    }
+
+    // 💾 Save immediately
+    saveWarnDB()
+
+    // 🔥 TRUE COUNT
+    const warnCount =
+      global.WARN_DB[groupJid][sender].count
+
+    console.log(
+      `REAL WARN COUNT: ${warnCount} | USER: ${sender} | GROUP: ${groupJid}`
+    )
+
+    // ================= WARNING MESSAGE =================
+    await sock.sendMessage(jid, {
+      text:
+        `⚠️ @${sender.split("@")[0]} warned for ${reason}\n` +
+        `🚨 Warns: ${warnCount}/${WARN_LIMIT}`,
+      mentions: [sender]
+    })
+
+    // ================= AUTO KICK =================
+    if (warnCount >= WARN_LIMIT) {
+      try {
+        await sock.sendMessage(jid, {
+          text:
+            `🚫 @${sender.split("@")[0]} removed for repeated violations ` +
+            `(${WARN_LIMIT}/${WARN_LIMIT}).`,
+          mentions: [sender]
+        })
+
+        await sock.groupParticipantsUpdate(
+          jid,
+          [sender],
+          "remove"
+        )
+
+        // 🧹 Reset warns
+        delete global.WARN_DB[groupJid][sender]
+
+        saveWarnDB()
+
+      } catch (e) {
+        console.log(
+          "AUTO KICK ERROR:",
+          e
+        )
+
+        await sock.sendMessage(jid, {
+          text:
+            `⚠️ @${sender.split("@")[0]} reached ${WARN_LIMIT} warns ` +
+            `but I need admin rights.`,
+          mentions: [sender]
+        })
+      }
+    }
+
+    return warnCount
+
+  } catch (e) {
+    console.log(
+      "HANDLE AUTO WARN ERROR:",
+      e
+    )
+
+    return 0
+  }
+}
+
 // ================= ANTI-LINK =================
 if (isGroup && group_settings.antilink && body) {
   const links = [
@@ -1726,19 +1859,13 @@ if (isGroup && group_settings.antilink && body) {
     "chat.whatsapp.com"
   ]
 
-  if (links.some(l =>
-    body.toLowerCase().includes(l)
-  )) {
-
-    // 🛡️ Skip owners/admins
+  if (links.some(l => body.toLowerCase().includes(l))) {
     if (!isOwner && !isAdmin) {
 
       try {
-        // 🗑️ Delete offending message
         await sock.sendMessage(jid, {
           delete: msg.key
         })
-
       } catch (e) {
         console.log(
           "ANTI-LINK DELETE ERROR:",
@@ -1746,118 +1873,91 @@ if (isGroup && group_settings.antilink && body) {
         )
       }
 
-      // ⚠️ Add warning
-      const warnCount =
-        await addWarn(
-          sock,
-          jid,
-          sender,
-          "Link detected"
-        )
-
-      // 🚨 AUTO KICK AT 3 WARNS
-      if (warnCount >= 3) {
-
-        try {
-
-          await sock.sendMessage(jid, {
-            text:
-              `🚫 @${sender.split("@")[0]} removed for repeated link sharing (3/3 warns).`,
-            mentions: [sender]
-          })
-
-          // 👢 Kick user
-          await sock.groupParticipantsUpdate(
-            jid,
-            [sender],
-            "remove"
-          )
-
-          // 🧹 Optional reset warns after kick
-          if (
-            global.WARN_DB &&
-            global.WARN_DB[jid] &&
-            global.WARN_DB[jid][sender]
-          ) {
-            delete global.WARN_DB[jid][sender]
-          }
-
-        } catch (e) {
-          console.log(
-            "AUTO KICK ERROR:",
-            e
-          )
-
-          await sock.sendMessage(jid, {
-            text:
-              `⚠️ @${sender.split("@")[0]} reached 3 warns but I need admin rights to remove them.`,
-            mentions: [sender]
-          })
-        }
-      }
+      // ⚠️ Warn + Auto Kick
+      await handleAutoWarn(
+        sock,
+        jid,
+        sender,
+        "Link detected",
+        msg
+      )
 
       return
     }
   }
 }
 
-// ================= ANTI-STATUS =================
 
-// 🚫 BLOCK STATUS VIEWING + AUTO WARN/KICK
+// ================= ANTI-BADWORD =================
+if (
+  isGroup &&
+  group_settings.antibadword &&
+  body
+) {
+  const badwords = [
+    "fuck",
+    "shit",
+    "bitch",
+    "asshole"
+  ]
+
+  if (
+    badwords.some(w =>
+      body.toLowerCase().includes(w)
+    )
+  ) {
+    if (!isOwner && !isAdmin) {
+
+      try {
+        await sock.sendMessage(jid, {
+          delete: msg.key
+        })
+      } catch (e) {
+        console.log(
+          "ANTI-BADWORD DELETE ERROR:",
+          e
+        )
+      }
+
+      // ⚠️ Warn + Auto Kick
+      await handleAutoWarn(
+        sock,
+        jid,
+        sender,
+        "Bad word detected",
+        msg
+      )
+
+      return
+    }
+  }
+}
+
+
+// ================= ANTI-STATUS =================
+// 🚫 Blocks status viewing / status broadcast interaction
 if (
   group_settings.antistatus &&
   msg.key.remoteJid === "status@broadcast"
 ) {
   try {
-
-    // 👁️ Prevent status engagement
+    // 👁️ Mark as read / block interaction
     await sock.readMessages([msg.key])
 
-    // ⚠️ Warn offender
-    const warnCount = await addWarn(
-      sock,
-      jid,
-      sender,
-      "Status viewing blocked"
-    )
+    // 🚫 Skip owner/admin
+    if (!isOwner && !isAdmin) {
 
-    // 🚨 AUTO KICK AT 3 WARNS
-    if (
-      warnCount >= 3 &&
-      isGroup &&
-      !isOwner &&
-      !isAdmin
-    ) {
-      try {
-
-        await sock.sendMessage(jid, {
-          text:
-            `🚫 @${sender.split("@")[0]} removed for repeated status violations (3/3 warns).`,
-          mentions: [sender]
-        })
-
-        await sock.groupParticipantsUpdate(
-          jid,
-          [sender],
-          "remove"
-        )
-
-        // 🧹 Reset warns after kick
-        if (
-          global.WARN_DB &&
-          global.WARN_DB[jid] &&
-          global.WARN_DB[jid][sender]
-        ) {
-          delete global.WARN_DB[jid][sender]
-        }
-
-      } catch (e) {
-        console.log(
-          "ANTI-STATUS AUTO KICK ERROR:",
-          e
-        )
-      }
+      // ⚠️ Warn offender
+      await handleAutoWarn(
+        sock,
+        jid,
+        sender,
+        "Status viewing blocked",
+        msg
+      )
     }
+
+    return
 
   } catch (e) {
     console.log(
@@ -1868,174 +1968,43 @@ if (
 }
 
 
-// 📢 BLOCK STATUS MENTIONS + AUTO WARN/KICK
-if (group_settings.antistatus_mention) {
-  try {
+// ================= ANTI-STATUS MENTION =================
+if (
+  isGroup &&
+  group_settings.antistatus_mention
+) {
+  const text =
+    msg.message?.extendedTextMessage?.text ||
+    msg.message?.conversation ||
+    ""
 
-    const text =
-      msg.message?.extendedTextMessage?.text ||
-      msg.message?.conversation ||
-      ""
-
-    if (
-      text.includes("@") &&
-      !isOwner &&
-      !isAdmin
-    ) {
-
-      // 🗑️ Delete mention
-      try {
-        await sock.sendMessage(jid, {
-          delete: msg.key
-        })
-      } catch (e) {
-        console.log(
-          "STATUS MENTION DELETE ERROR:",
-          e
-        )
-      }
-
-      // ⚠️ Warn user
-      const warnCount = await addWarn(
-        sock,
-        jid,
-        sender,
-        "Status mention detected",
-        "link dected",
-        "status mention dectected"
+  // 📢 Detect @ mentions
+  if (
+    text.includes("@") &&
+    !isOwner &&
+    !isAdmin
+  ) {
+    try {
+      await sock.sendMessage(jid, {
+        delete: msg.key
+      })
+    } catch (e) {
+      console.log(
+        "ANTI-STATUS-MENTION DELETE ERROR:",
+        e
       )
-
-      // 🚫 Warning message
-      await sock.sendMessage(jid, {
-        text:
-          `🚫 @${sender.split("@")[0]} status mention blocked (${warnCount}/3).`,
-        mentions: [sender]
-      })
-
-      // 🚨 AUTO KICK
-      if (warnCount >= 3) {
-        try {
-
-          await sock.sendMessage(jid, {
-            text:
-              `👢 @${sender.split("@")[0]} removed for repeated status mentions.`,
-            mentions: [sender]
-          })
-
-          await sock.groupParticipantsUpdate(
-            jid,
-            [sender],
-            "remove"
-          )
-
-          // 🧹 Reset warns
-          if (
-            global.WARN_DB &&
-            global.WARN_DB[jid] &&
-            global.WARN_DB[jid][sender]
-          ) {
-            delete global.WARN_DB[jid][sender]
-          }
-
-        } catch (e) {
-          console.log(
-            "STATUS MENTION AUTO KICK ERROR:",
-            e
-          )
-
-          await sock.sendMessage(jid, {
-            text:
-              `⚠️ @${sender.split("@")[0]} reached 3 warns but I need admin rights to remove them.`,
-            mentions: [sender]
-          })
-        }
-      }
     }
 
-  } catch (e) {
-    console.log(
-      "ANTI-STATUS-MENTION ERROR:",
-      e
+    // ⚠️ Warn + Auto Kick
+    await handleAutoWarn(
+      sock,
+      jid,
+      sender,
+      "Status mention detected",
+      msg
     )
-  }
-}
 
-   if (isGroup && group_settings.antibadword && body) {
-    const badwords = ["fuck", "shit", "bitch", "asshole"]
-
-    if (badwords.some(w => body.toLowerCase().includes(w))) {
-      if (!isOwner) {
-
-        await sock.sendMessage(jid, { delete: msg.key })
-
-        await addWarn(sock, jid, sender, "Bad word detected")
-
-        await reaction(jid, msg.key, "🧼")
-
-        return
-      }
-    }
-  }
-
-  // ================= ANTI STATUS FIX =================
-if (isGroup && (group_settings.antistatus || group_settings.antistatus_mention)) {
-  try {
-    const isStatus = jid === "status@broadcast"
-
-    if (isStatus) {
-
-      const senderId = sender
-
-      // 🚫 DELETE STATUS VIEW MESSAGE (if possible)
-      try {
-        await sock.sendMessage(jid, { delete: msg.key })
-      } catch {}
-
-      // ================= WARN SYSTEM =================
-      warns[senderId] = (warns[senderId] || 0) + 1
-
-      await sock.sendMessage(jid, {
-        text: `🚫 Anti-Status Triggered\n\n👤 User: @${senderId.split("@")[0]}\n⚠️ Warn: ${warns[senderId]}/3`,
-        mentions: [senderId]
-      })
-
-      // ================= AUTO KICK =================
-      if (warns[senderId] >= WARN_LIMIT) {
-        await sock.groupParticipantsUpdate(jid, [senderId], "remove")
-        delete warns[senderId]
-
-        await sock.sendMessage(jid, {
-          text: `🚨 Removed @${senderId.split("@")[0]} for status abuse`,
-          mentions: [senderId]
-        })
-      }
-    }
-
-    // ================= ANTI STATUS MENTION =================
-    const text =
-      msg.message?.extendedTextMessage?.text ||
-      msg.message?.conversation ||
-      ""
-
-    if (group_settings.antistatus_mention && text.includes("@")) {
-
-      await sock.sendMessage(jid, { delete: msg.key })
-
-      warns[sender] = (warns[sender] || 0) + 1
-
-      await sock.sendMessage(jid, {
-        text: `📢 Anti-Status Mention Blocked\n\n👤 @${sender.split("@")[0]}\n⚠️ Warn: ${warns[sender]}/3`,
-        mentions: [sender]
-      })
-
-      if (warns[sender] >= WARN_LIMIT) {
-        await sock.groupParticipantsUpdate(jid, [sender], "remove")
-        delete warns[sender]
-      }
-    }
-
-  } catch (e) {
-    console.log("❌ Anti-status error:", e)
+    return
   }
 }
 
@@ -3448,31 +3417,85 @@ dashboard: async () => {
 
 warnlist: async () => {
   if (!isGroup) return reply("❌ Group only")
-if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ Bot owner only")
 
-  const data = WARN_DB[jid]
-  if (!data || Object.keys(data).length === 0)
-    return reply("📭 No warnings in this group")
+  try {
+    // 🔥 Always load latest warns
+    loadWarnDB()
 
-  let text = "⚠️ *GROUP WARNINGS*\n\n"
+    // 🔥 Current group warns
+    const warns = global.WARN_DB?.[jid] || {}
 
-  for (const user in data) {
-    const warns = data[user]
+    // 🚫 No warns
+    if (
+      !warns ||
+      typeof warns !== "object" ||
+      Object.keys(warns).length === 0
+    ) {
+      return reply("✅ No active warnings in this group.")
+    }
 
-    text += `👤 @${user.split("@")[0]}\n`
-    text += `⚠️ Count: ${warns.length}\n`
+    let text = `⚠️ *GROUP WARN LIST*\n\n`
+    let mentions = []
+    let index = 1
 
-    warns.forEach((w, i) => {
-      text += `   ${i + 1}. ${w.reason}\n`
+    // ✅ Object.entries instead of warns.forEach
+    for (const [user, data] of Object.entries(warns)) {
+      if (!user || !data) continue
+
+      let count = 0
+      let reasons = []
+
+      // 🔥 New object format
+      if (
+        typeof data === "object" &&
+        data !== null
+      ) {
+        count = Number(data.count) || 0
+
+        if (Array.isArray(data.reasons)) {
+          reasons = data.reasons
+        }
+      }
+
+      // 🔥 Old number format
+      else if (typeof data === "number") {
+        count = data
+      }
+
+      // 🚫 Skip zero warns
+      if (count < 1) continue
+
+      text +=
+        `${index}. @${user.split("@")[0]}\n` +
+        `⚠️ Warns: ${count}/${WARN_LIMIT}\n` +
+        `📝 Reasons: ${
+          reasons.length
+            ? reasons.join(", ")
+            : "No reason"
+        }\n\n`
+
+      mentions.push(user)
+      index++
+    }
+
+    // 🚫 No valid warns after filtering
+    if (mentions.length === 0) {
+      return reply("✅ No active warnings in this group.")
+    }
+
+    await sock.sendMessage(jid, {
+      text,
+      mentions
     })
 
-    text += "\n"
-  }
+  } catch (e) {
+    console.log("❌ WARNLIST ERROR:", e)
 
-  await sock.sendMessage(jid, {
-    text,
-    mentions: Object.keys(data)
-  })
+    reply(
+      `❌ Failed to fetch warn list.\n${e.message}`
+    )
+  }
 },
 
 // ================= CLEAR USER WARNINGS =================
