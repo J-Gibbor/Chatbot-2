@@ -2603,21 +2603,21 @@ viewonce: async () => {
     )
 
     // 🧹 Delete command after 4s
-    setTimeout(async () => {
-      try {
-        await sock.sendMessage(
-          jid,
-          {
-            delete: msg.key
-          }
-        )
-      } catch (e) {
-        console.log(
-          "VIEWONCE DELETE ERROR:",
-          e
-        )
-      }
-    }, 4000)
+    // setTimeout(async () => {
+    //   try {
+    //     await sock.sendMessage(
+    //       jid,
+    //       {
+    //         delete: msg.key
+    //       }
+    //     )
+    //   } catch (e) {
+    //     console.log(
+    //       "VIEWONCE DELETE ERROR:",
+    //       e
+    //     )
+    //   }
+    // }, 4000)
 
   } catch (e) {
     console.log(
@@ -2885,15 +2885,15 @@ memesticker: async () => {
   await react("😂")
 
   // 🔥 Auto-delete command after 2s
-  setTimeout(async () => {
-    try {
-      await sock.sendMessage(jid, {
-        delete: msg.key
-      })
-    } catch (e) {
-      console.log("Command delete failed:", e)
-    }
-  }, 2000)
+  // setTimeout(async () => {
+  //   try {
+  //     await sock.sendMessage(jid, {
+  //       delete: msg.key
+  //     })
+  //   } catch (e) {
+  //     console.log("Command delete failed:", e)
+  //   }
+  // }, 2000)
 
   // ===== SAFE TEXT =====
   const safeText = text
