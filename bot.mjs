@@ -108,7 +108,7 @@ words: {
   bye: ["Bye 👋", "See you 😄", "Take care 💙"],
   help: ["Type .menu for commands 📋", "Need help? Use .menu 👀"],
 
-  owner: ["👑 My owner is amazing", "👑 Respect the owner", "I was created by Neche AKA Boss"],
+  owner: ["👑 My owner is amazing", "👑 Respect the owner I was created by Neche AKA Boss"],
   menu: ["📋 Type .menu to explore commands"],
   ping: ["🏓 Pong!"],
   alive: ["💚 I'm active and running"],
@@ -512,7 +512,7 @@ const addWarn = async (sock, jid, user, reason) => {
 // ==== STICKER META ====
 
 const STICKER_META = {
-  packname: "BOSS BOT 🤖",
+  packname: "BOSS' BOT 🤖",
   author: "Sticker Engine v2"
 }
 
@@ -880,6 +880,14 @@ dict: "📖 𝙌𝙪𝙞𝙘𝙠 𝘿𝙞𝙘𝙩𝙞𝙤𝙣𝙖𝙧𝙮 𝙎�
   guess: "🎲 𝙂𝙪𝙚𝙨𝙨 𝙩𝙝𝙚 𝙣𝙪𝙢𝙗𝙚𝙧",
   roll: "🎲 𝙍𝙤𝙡𝙡 𝙖 𝙙𝙞𝙘𝙚",
   flip: "🪙 𝙁𝙡𝙞𝙥 𝙖 𝙘𝙤𝙞𝙣",
+
+bibleverse: "🔍 𝙎𝙚𝙖𝙧𝙘𝙝 𝙖𝙣𝙮 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚 (𝙅𝙤𝙝𝙣 3:16)",
+biblebook: "📚 𝙍𝙚𝙖𝙙 𝘽𝙞𝙗𝙡𝙚 𝙗𝙤𝙤𝙠𝙨 & 𝙘𝙝𝙖𝙥𝙩𝙚𝙧𝙨",
+bibleaudio: "🎧 𝙇𝙞𝙨𝙩𝙚𝙣 𝙩𝙤 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
+bibletopic: "📌 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨 𝙗𝙮 𝙩𝙤𝙥𝙞𝙘 (𝙡𝙤𝙫𝙚, 𝙛𝙖𝙞𝙩𝙝)",
+setbibledaily: "🌙 𝘼𝙪𝙩𝙤-𝙨𝙚𝙣𝙙 𝙙𝙖𝙞𝙡𝙮 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
+bibleexplain: "🧠 𝙎𝙞𝙢𝙥𝙡𝙚 𝙚𝙭𝙥𝙡𝙖𝙣𝙖𝙩𝙞𝙤𝙣 𝙤𝙛 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
+bibledevotion: "🌅 𝘿𝙖𝙞𝙡𝙮 𝙙𝙚𝙫𝙤𝙩𝙞𝙤𝙣 & 𝙞𝙣𝙨𝙥𝙞𝙧𝙖𝙩𝙞𝙤𝙣",
 
 }
 
@@ -1374,9 +1382,9 @@ if (
 
       const now = Date.now()
 
-      // ⏱️ Human-like cooldown (8s–20s random)
+      // ⏱️ Human-like cooldown (5s–7s random)
       const cooldown =
-        Math.floor(Math.random() * 12000) + 8000
+        Math.floor(Math.random() * 2000) + 5000
 
       if (
         !global.LAST_DM_REPLY[sender] ||
@@ -1389,9 +1397,9 @@ if (
           jid
         )
 
-        // ⏳ Random typing delay (2s–5s)
+        // ⏳ Random typing delay (1s–3s)
         const typingDelay =
-          Math.floor(Math.random() * 3000) + 2000
+          Math.floor(Math.random() * 2000) + 1000
 
         await new Promise(resolve =>
           setTimeout(resolve, typingDelay)
@@ -2218,6 +2226,14 @@ dict: "📖",
   roll: "🎲",
   flip: "🪙",
 
+  bibledevotion: "🌅",
+  bibleaudio: "🎧",
+  biblebook: "📖",
+  bibleexplain: "🧠",
+  bibletopic: "📚",
+  setBibleDaily: "📅",
+  bibleverse: "📜",
+
   // ⚙️ SYSTEM
   default: "⚡"
 }
@@ -2318,16 +2334,36 @@ setInterval(async () => {
 // ================= MODES =================
 const botMode = settings?.mode || "public"
 
+const owner = "+2349021540840"
+
 if (botMode === "private") {
-  if (!isOwner && !isBot) return
+  if (!isOwner && !isBot) return reply(
+`🔒 *PRIVATE MODE ACTIVE*
+
+❌ This bot is currently restricted to my owner only.
+
+👑 Please contact ${owner} for access.`
+    )
 }
 
 if (botMode === "group") {
-  if (!isGroup && !isOwner) return
+  if (!isGroup && !isOwner) return  reply(
+`👥 *GROUP MODE ACTIVE*
+
+❌ This bot only works in group chats.
+
+👑 Please use this bot inside a group or contact ${owner} for help.`,
+    )
 }
 
 if (botMode === "dm") {
-  if (!isDM && !isOwner) return
+  if (!isDM && !isOwner) return reply(
+`📩 *DM MODE ACTIVE*
+
+❌ This bot only works in private chat (DM).
+
+👑 Please message the bot directly or contact ${owner} for assistance.`,
+    )
 }
 
 if (botMode === "auto") {
@@ -2349,7 +2385,7 @@ if (isDM) {
       // ===== MEDIA =====
 
       vv: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   // 📩 Get quoted message
   const quoted =
@@ -2474,7 +2510,7 @@ if (isDM) {
 // 👁️ VIEW-ONCE CONVERTER (Owner tagged + custom reveal caption)
 viewonce: async () => {
   if (!isOwner) {
-    return reply("❌ Owner only")
+    return reply("❌ My owner only")
   }
 
   // 📩 Must reply to a view-once message
@@ -2632,7 +2668,7 @@ viewonce: async () => {
 },
 
       pp: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   let target = getTarget() || sender
 
@@ -2670,7 +2706,7 @@ viewonce: async () => {
 },
 
       sticker: async () => {
-        if (!isOwner) return reply("❌ Owner only")
+        if (!isOwner) return reply("❌ My owner only")
   const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
 
   let mediaMessage =
@@ -2694,6 +2730,7 @@ viewonce: async () => {
 },
 
 take: async () => {
+  if (!isOwner) return reply("❌ My owner only")
   const packname = args[0]
   const author = args.slice(1).join(" ")
 
@@ -2755,7 +2792,7 @@ take: async () => {
 },
 
 stickergif: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
 
@@ -2876,7 +2913,7 @@ ${PREFIX}stickergif`
 
 // ================= FIXED MEMESTICKER (NO OVERFLOW + PERFECT CENTER) =================
 memesticker: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const text = args.join(" ").trim()
   if (!text) return reply("❌ Provide text")
@@ -3000,7 +3037,7 @@ memesticker: async () => {
 },
 
 captionsticker: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
 
   const text =
@@ -3033,7 +3070,7 @@ const sticker = await createSticker(buffer)
 },
 
 stickerpack: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const name = args.join(" ") || "🎭 Special Pack"
 const author = msg.pushName || "Bot User"
 
@@ -3064,7 +3101,7 @@ await sock.sendMessage(jid, {
 //  CREATE PACK
 
 pack_create: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const name = args[0]?.toLowerCase()
 
   if (!name)
@@ -3087,7 +3124,7 @@ pack_create: async () => {
 // ADD PACK
 
 pack_add: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const name = args[0]?.toLowerCase()
   const emoji = args[1] || "🙂"
@@ -3176,7 +3213,7 @@ pack_add: async () => {
 // VIEW PACKS
 
 pack_view: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const name = args[0]?.toLowerCase()
 
   if (!name)
@@ -3199,7 +3236,7 @@ pack_view: async () => {
 // LIST PACKS
 
 pack_list: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const packs = Object.keys(STICKER_PACKS)
 
   if (!packs.length)
@@ -3217,7 +3254,7 @@ pack_list: async () => {
 // DELETE PACK
 
 pack_delete: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const name = args[0]?.toLowerCase()
 
   if (!name)
@@ -3235,7 +3272,7 @@ pack_delete: async () => {
 // SEND PACK
 
 pack_send: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const name = args[0]?.toLowerCase()
 
   if (!name)
@@ -3259,21 +3296,21 @@ pack_send: async () => {
 
       // ===== TOGGLES =====
       antidelete: async () => {
-        if (!isOwner) return reply("❌ Bot owner only")
+        if (!isOwner) return reply("❌ My owner only")
         group_settings.antidelete = args[0] === "on"
         saveGroupSettings()
         reply(`🧠 Anti-delete ${group_settings.antidelete ? "ON" : "OFF"}`)
       },
 
       antilink: async () => {
-        if (!isOwner) return reply("❌ Bot owner only")
+        if (!isOwner) return reply("❌ My owner only")
         group_settings.antilink = args[0] === "on"
         saveGroupSettings()
         reply(`🔗 Anti-link ${group_settings.antilink ? "ON" : "OFF"}`)
       },
 
       antibadword: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only  or Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   group_settings.antibadword = args[0] === "on"
   saveGroupSettings()
@@ -3284,7 +3321,7 @@ pack_send: async () => {
   settings: async () => {
   if (!isOwner) {
     await react(sock, jid, msg.key, "error")
-    return reply("❌ Owner only")
+    return reply("❌ My owner only")
   }
 
   await react(sock, jid, msg.key, "loading")
@@ -3358,7 +3395,7 @@ pack_send: async () => {
 },
 
 dashboard: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const text = `
@@ -3420,7 +3457,7 @@ dashboard: async () => {
   // ================= WARN USER =================
     warn: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const target = getTarget()
   if (!target) return reply("❌ Mention user")
@@ -3462,7 +3499,7 @@ dashboard: async () => {
 
 warnlist: async () => {
   if (!isGroup) return reply("❌ Group only")
-    if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
   try {
     // 🔥 Always load latest warns
@@ -3546,7 +3583,7 @@ warnlist: async () => {
 // ================= CLEAR USER WARNINGS =================
 unwarn: async () => {
   if (!isGroup) return reply("❌ Group only")
-if (!isOwner) return reply("❌ Bot owner only")
+if (!isOwner) return reply("❌ My owner only")
 
   const target = getTarget()
   if (!target) return reply("❌ Mention user")
@@ -3562,7 +3599,7 @@ if (!isOwner) return reply("❌ Bot owner only")
 
 warninfo: async () => {
   if (!isGroup) return reply("❌ Group only")
-if (!isOwner) return reply("❌ Bot owner only")
+if (!isOwner) return reply("❌ My owner only")
 
   const target = getTarget() || sender
 
@@ -3583,7 +3620,7 @@ if (!isOwner) return reply("❌ Bot owner only")
 // ================= RESET WARNS =================
 resetwarns: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("♻️")
 
@@ -3596,7 +3633,7 @@ resetwarns: async () => {
 
       viewadmins: async () => {
   if (!isGroup) return reply("❌ Group only")
-    if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -3629,7 +3666,7 @@ resetwarns: async () => {
  // 👑 ADD OWNER BY NUMBER (no @mentions)
 // 👑 ADD OWNER (number, mention, or reply) — FULL FIX
 addowner: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌  Bot Owner only")
 
   try {
     let jid = null
@@ -3720,7 +3757,7 @@ Reply to a user`
 
 // ❌ REMOVE OWNER (number, mention, or reply) — FULL FIX
 delowner: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     let jid = null
@@ -3802,7 +3839,7 @@ Reply to a user`
 
 // 📋 LIST OWNERS BY NUMBER ONLY
 owners: async () => {
-   if (!isOwner) return reply("❌ Owner only")
+   if (!isOwner) return reply("❌ My owner only")
  reply(
     "👑 Owners:\n" +
     BOT_OWNERS.map((o, i) => `${i + 1}. ${o.split("@")[0]}`).join("\n")
@@ -3815,14 +3852,14 @@ owners: async () => {
 // ====== AUTO REPLY=======
 
 autoreplyon: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   global.DM_AUTO_REPLY.enabled = true
   reply("💬 Auto Reply Enabled ✅")
 },
 
 autoreplyoff: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   global.DM_AUTO_REPLY.enabled = false
   reply("🔕 Auto Reply Disabled ❌")
@@ -3830,7 +3867,7 @@ autoreplyoff: async () => {
 
 
 addreply: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const [keyword, ...msgParts] = args
   const message = msgParts.join(" ")
@@ -3849,7 +3886,7 @@ addreply: async () => {
 },
 
 delreply: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const keyword = args[0]
 
@@ -3861,7 +3898,7 @@ delreply: async () => {
 },
 
 listreply: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   let text = "💬 *AUTO REPLY LIST*\n\n"
 
@@ -3879,7 +3916,7 @@ listreply: async () => {
 },
 
    restart: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await reply("🔄 Restarting bot safely...")
 
@@ -3900,7 +3937,7 @@ listreply: async () => {
 },
 
 restart_force: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await reply("🔄 Restarting bot safely...")
 
@@ -3911,7 +3948,7 @@ restart_force: async () => {
 },
 
 shutdown: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     await reply("⛔ Shutting down bot safely...")
@@ -3931,7 +3968,7 @@ shutdown: async () => {
 },
 
 shutdown_force: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await reply("⛔ Bot shutting down...")
 
@@ -3941,7 +3978,7 @@ shutdown_force: async () => {
 },
 
 broadcast: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const message = args.join(" ")
   if (!message) return reply("❌ Provide message")
@@ -3974,7 +4011,7 @@ broadcast: async () => {
 ban: async () => {
   if (!isOwner) {
     await react(sock, jid, msg.key, "error")
-    return reply("❌ Owner only")
+    return reply("❌ My owner only")
   }
 
   await react(sock, jid, msg.key, "loading")
@@ -4022,7 +4059,7 @@ ban: async () => {
 unban: async () => {
   if (!isOwner) {
     await react(sock, jid, msg.key, "error")
-    return reply("❌ Owner only")
+    return reply("❌ My owner only")
   }
 
   await react(sock, jid, msg.key, "loading")
@@ -4065,7 +4102,7 @@ unban: async () => {
 banned: async () => {
   if (!isOwner) {
     await react(sock, jid, msg.key, "error")
-    return reply("❌ Owner only")
+    return reply("❌ My owner only")
   }
 
   await react(sock, jid, msg.key, "loading")
@@ -4095,7 +4132,7 @@ banned: async () => {
 // ================= MUTE USER =================
 mute: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("🔇")
 
@@ -4120,7 +4157,7 @@ mute: async () => {
 // ================= UNMUTE USER =================
 unmute: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("🔊")
 
@@ -4164,7 +4201,7 @@ ${muted.map((u, i) => `${i + 1}. @${u.split("@")[0]}`).join("\n")}`
 // ================= DELETE ALL LINKS =================
 clearlinks: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("🧹")
 
@@ -4179,7 +4216,7 @@ clearlinks: async () => {
       // ===== TAG =====
      tageveryone: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -4214,7 +4251,7 @@ clearlinks: async () => {
 
 tagall: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -4259,7 +4296,7 @@ tagall: async () => {
 },
 tagonline: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -4298,7 +4335,7 @@ tagonline: async () => {
 },
     hidetag: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -4338,7 +4375,7 @@ tagonline: async () => {
 
       lock: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     await sock.groupSettingUpdate(jid, "announcement")
@@ -4352,7 +4389,7 @@ tagonline: async () => {
 
 // 👮 VIEW GROUP ADMINS
 admins: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!isGroup) {
     return reply("❌ Group only")
   }
@@ -4415,7 +4452,7 @@ admins: async () => {
 
 // 🟢 VIEW ONLINE ADMINS (recently active approximation)
 adminsonline: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!isGroup) {
     return reply("❌ Group only")
   }
@@ -4472,7 +4509,7 @@ adminsonline: async () => {
 
 // 📊 ADMIN STATS
 adminstats: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!isGroup) {
     return reply("❌ Group only")
   }
@@ -4541,7 +4578,7 @@ adminstats: async () => {
 
 unlock: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     await sock.groupSettingUpdate(jid, "not_announcement")
@@ -4554,7 +4591,7 @@ unlock: async () => {
 // ================= GROUP OPEN TEMP =================
 opentemp: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const minutes = parseInt(args[0])
   if (!minutes || minutes < 1) {
@@ -4580,7 +4617,7 @@ opentemp: async () => {
 // ================= GROUP CLOSE TEMP =================
 closetemp: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const minutes = parseInt(args[0])
   if (!minutes || minutes < 1) {
@@ -4606,7 +4643,7 @@ closetemp: async () => {
 // ===== SET OPEN TIME =====
 setopen: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const time = args[0]
 
@@ -4635,7 +4672,7 @@ setopen: async () => {
 // ===== SET CLOSE TIME =====
 setclose: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const time = args[0]
 
@@ -4686,7 +4723,7 @@ schedule: async () => {
 // ===== DISABLE SCHEDULE =====
 scheduleoff: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("⛔")
 
@@ -4703,7 +4740,7 @@ scheduleoff: async () => {
 // ===== ENABLE SCHEDULE =====
 scheduleon: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("✅")
 
@@ -4720,7 +4757,7 @@ scheduleon: async () => {
 // ===== DELETE SCHEDULE =====
 delschedule: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   await react("🗑️")
 
@@ -4734,7 +4771,7 @@ delschedule: async () => {
 // ==== GROUP MANAGEMENT =====
 setname: async () => {
     if (!isGroup) return reply("❌ Group only")
-    if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const newName = args.join(" ")
     if (!newName) return reply("❌ Provide new group name")
@@ -4750,7 +4787,7 @@ setname: async () => {
 
   setdesc: async () => {
     if (!isGroup) return reply("❌ Group only")
-    if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const newDesc = args.join(" ")
     if (!newDesc) return reply("❌ Provide new description")
@@ -4766,7 +4803,7 @@ setname: async () => {
 
 groupinfo: async () => {
   if (!isGroup) return reply("❌ Group only")
-    if (!isOwner) return reply("❌ Bot owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
   try {
     const meta = await sock.groupMetadata(jid)
@@ -4804,7 +4841,7 @@ ${admins.map((a, i) => ` ${i + 1}. @${a.split("@")[0]}`).join("\n")}
 
 grouplink: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const code = await sock.groupInviteCode(jid)
@@ -4827,7 +4864,7 @@ grouplink: async () => {
 
 revoke: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   await sock.groupRevokeInvite(jid)
   reply("🔄 Group link reset successful")
 },
@@ -4836,7 +4873,7 @@ revoke: async () => {
 add: async () => {
   if (!isGroup) return reply("❌ Group only")
   if (!isOwner) {
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   let number = args[0]?.replace(/\D/g, "") // removes +, spaces, etc.
@@ -4941,7 +4978,7 @@ ${link}
 invite: async () => {
   if (!isGroup) return reply("❌ Group only")
   if (!isOwner) {
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   let number = args[0]?.replace(/\D/g, "") // remove spaces, +, symbols
@@ -5023,7 +5060,7 @@ ${link}
 // ================= KICK USER =================
  kick: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   let user
 
@@ -5102,7 +5139,7 @@ ${link}
      promote: async () => {
   if (!isGroup) return reply("❌ Group only")
   if (!isOwner) {
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   const target = getTarget()
@@ -5156,7 +5193,7 @@ ${link}
 demote: async () => {
   if (!isGroup) return reply("❌ Group only")
   if (!isOwner) {
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   const target = getTarget()
@@ -5211,7 +5248,7 @@ demote: async () => {
 
 // promote: async () => {
 //   if (!isGroup) return reply("❌ Group only")
-//   if (!isOwner) return reply("❌ Bot owner only")
+//   if (!isOwner) return reply("❌ My owner only")
 
 //   // supports mention, reply, or raw number
 //   let number =
@@ -5249,7 +5286,7 @@ demote: async () => {
 // // ================= DEMOTE USER =================
 // demote: async () => {
 //   if (!isGroup) return reply("❌ Group only")
-//   if (!isOwner) return reply("❌ Bot owner only")
+//   if (!isOwner) return reply("❌ My owner only")
 
 //   // supports mention, reply, or raw number
 //   let number =
@@ -5292,7 +5329,7 @@ approve: async () => {
 
   if (!isOwner) {
     await react(sock, jid, msg.key, "🚫")
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   let target =
@@ -5354,7 +5391,7 @@ reject: async () => {
 
   if (!isOwner) {
     await react(sock, jid, msg.key, "🚫")
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   // ================= TARGET RESOLVER =================
@@ -5419,7 +5456,7 @@ reject: async () => {
 
 approveall: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const requests = await sock.groupRequestParticipantsList(jid)
@@ -5441,7 +5478,7 @@ approveall: async () => {
 
 rejectall: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   try {
     const requests = await sock.groupRequestParticipantsList(jid)
@@ -5514,7 +5551,7 @@ requests: async () => {
 
   if (!isOwner) {
     await react(sock, jid, msg.key, "🚫")
-    return reply("❌ Bot owner only")
+    return reply("❌ My owner only")
   }
 
   await react(sock, jid, msg.key, "⏳")
@@ -5567,7 +5604,7 @@ requests: async () => {
 // ================= ANTI STATUS =================
 antistatus: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   group_settings.antistatus = args[0] === "on"
   saveGroupSettings()
@@ -5577,7 +5614,7 @@ antistatus: async () => {
 
 antistatusmention: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   group_settings.antistatus_mention = args[0] === "on"
   saveGroupSettings()
@@ -5586,7 +5623,7 @@ antistatusmention: async () => {
 },
 
 del: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const quoted = msg.message?.extendedTextMessage?.contextInfo
 
@@ -5639,7 +5676,7 @@ ${PREFIX}del`
 },
 
 delete: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const quoted = msg.message?.extendedTextMessage?.contextInfo
 
@@ -5689,7 +5726,7 @@ ${PREFIX}delete`
 },
 
 alive: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const uptime = Date.now() - BOT_STATS.startTime
   const seconds = Math.floor(uptime / 1000)
@@ -5708,7 +5745,7 @@ alive: async () => {
 },
 
 test: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     const res = await fetch("https://example.com")
     const text = await res.text()
@@ -5720,7 +5757,7 @@ test: async () => {
 },
 
 nettest: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     const res = await fetch("https://www.google.com")
     const text = await res.text()
@@ -5732,7 +5769,7 @@ nettest: async () => {
 },
 
 help: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   await react(sock, jid, msg.key, "📖")
 
   const text = `
@@ -5797,7 +5834,7 @@ runtime: async () => {
 },
 
 mode: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const current = settings.mode || "public"
   const newMode = args[0]?.toLowerCase()
@@ -5856,7 +5893,7 @@ whoami: async () => {
 },
 
 ping: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const start = Date.now()
 
   const sent = await sock.sendMessage(jid, {
@@ -5878,7 +5915,7 @@ ping: async () => {
 
 // ============= STATUS FETCH =============
 getstatus: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     const quoted =
       msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
@@ -5963,7 +6000,7 @@ ${e.message || "Unknown error"}`
 },
 
 statuslist: async () => {
-   if (!isOwner) return reply("❌ Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   if (!global.STATUS_DB?.length) return reply("📭 No saved statuses")
 
   let text = "📚 *SAVED STATUSES*\n\n"
@@ -5976,13 +6013,13 @@ statuslist: async () => {
 },
 
 autostatus: async () => {
-   if (!isOwner) return reply("❌ Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   global.AUTO_SAVE_STATUS = !global.AUTO_SAVE_STATUS
   return reply(`⚙️ Auto Status Save: ${global.AUTO_SAVE_STATUS ? "ON" : "OFF"}`)
 },
 
 statusfilter: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   let number = args[0]?.replace(/\D/g, "")
   if (!number) return reply("❌ Usage: .statusfilter 23480xxxxxxx")
@@ -6001,14 +6038,14 @@ statusfilter: async () => {
 },
 
 statusclear: async () => {
-   if (!isOwner) return reply("❌ Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   global.STATUS_DB = []
   global.STATUS_HASH = new Set()
   return reply("🧹 All saved statuses cleared")
 },
 
 translate: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     let targetLang
     let text
@@ -6162,7 +6199,7 @@ Possible causes:
 },
 
 detect: async () => {
-  if (!isOwner) return reply("❌ Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     let text = q
 
@@ -6256,7 +6293,7 @@ ${PREFIX}detect`
 // .dict freedom
 
 dictionary: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     const word = args.join(" ").trim()
 
@@ -6392,7 +6429,7 @@ dict: async () => {
 // 👋 WELCOME COMMAND
 welcome: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const settings = getGroup_Settings(jid)
 
@@ -6422,7 +6459,7 @@ ${PREFIX}welcome off`
 // 🚪 GOODBYE COMMAND
 goodbye: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const settings = getGroup_Settings(jid)
 
@@ -6464,7 +6501,7 @@ setwelcome: async () => {
 
 // ✍️ SET GOODBYE
 setgoodbye: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!q) return reply("❌ Example: !setgoodbye Bye {user}")
 
   const settings = getGroup_Settings(jid)
@@ -6478,7 +6515,7 @@ setgoodbye: async () => {
 
 // 👁️ VIEW WELCOME
 viewwelcome: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const settings = getGroup_Settings(jid)
 
   reply(
@@ -6490,7 +6527,7 @@ ${settings.welcomeText}`
 
 // 👁️ VIEW GOODBYE
 viewgoodbye: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const settings = getGroup_Settings(jid)
 
   reply(
@@ -6502,7 +6539,7 @@ ${settings.goodbyeText}`
 
 // ♻️ RESET WELCOME
 resetwelcome: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const settings = getGroup_Settings(jid)
 
   settings.welcomeText = DEFAULT_WELCOME
@@ -6514,7 +6551,7 @@ resetwelcome: async () => {
 
 // ♻️ RESET GOODBYE
 resetgoodbye: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   const settings = getGroup_Settings(jid)
 
   settings.goodbyeText = DEFAULT_GOODBYE
@@ -6527,7 +6564,7 @@ resetgoodbye: async () => {
 // 🧪 TEST WELCOME
 testwelcome: async () => {
   try {
-    if (!isOwner) return reply("❌ Owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const style = group_settings.welcomestyle || "text"
 
@@ -6597,7 +6634,7 @@ testwelcome: async () => {
 // 🧪 TEST GOODBYE
 testgoodbye: async () => {
   try {
-    if (!isOwner) return reply("❌ Owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const style = group_settings.goodbyestyle || "text"
 
@@ -6673,7 +6710,7 @@ testgoodbye: async () => {
 welcomestyle: async () => {
   try {
 
-    if (!isOwner) return reply("❌ Owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const style = args[0]
     if (!style) {
@@ -6696,7 +6733,7 @@ welcomestyle: async () => {
 goodbyestyle: async () => {
   try {
 
-    if (!isOwner) return reply("❌ Owner only")
+    if (!isOwner) return reply("❌ My owner only")
 
     const style = args[0]
     if (!style) {
@@ -6717,7 +6754,7 @@ goodbyestyle: async () => {
 
 // 🎨 WELCOME COLOR
 welcomecolor: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!q) return reply(`❌ Example: ${PREFIX}welcomecolor blue`)
 
   const settings = getGroup_Settings(jid)
@@ -6729,7 +6766,7 @@ welcomecolor: async () => {
 
 // 🎨 GOODBYE COLOR
 goodbyecolor: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!q) return reply(`❌ Example: ${PREFIX}goodbyecolor red`)
 
   const settings = getGroup_Settings(jid)
@@ -6741,7 +6778,7 @@ goodbyecolor: async () => {
 
 // ⏳ WELCOME DELAY
 welcomedelay: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const seconds = parseInt(args[0])
 
@@ -6763,7 +6800,7 @@ ${PREFIX}welcomedelay 5
 
 // 📜 RULES WELCOME
 ruleswelcome: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6785,7 +6822,7 @@ ${PREFIX}ruleswelcome off`
 // 📍 AUTO ROLE
 autorole: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6807,7 +6844,7 @@ ${PREFIX}autorole off`
 // 👑 AUTO PROMOTE
 autopromote: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6829,7 +6866,7 @@ ${PREFIX}autopromote off`
 // ⬇️ AUTO DEMOTE
 autodemote: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6851,7 +6888,7 @@ ${PREFIX}autodemote off`
 // 🧹 AUTO CLEAN
 autoclean: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6873,7 +6910,7 @@ ${PREFIX}autoclean off`
 // 🎁 AUTO GIFT
 autogift: async () => {
   if (!isGroup) return reply("❌ Group only")
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
 
   const action = args[0]?.toLowerCase()
 
@@ -6894,7 +6931,7 @@ ${PREFIX}autogift off`
 
 // 🧠 ADVANCED CALCULATOR — scientific + conversions + percentages
 calc: async () => {
-  if (!isOwner) return reply("❌ Bot Owner only")
+  if (!isOwner) return reply("❌ My owner only")
   try {
     if (!q) {
       return reply(
@@ -7018,7 +7055,7 @@ ${result}`
 },
 
 calculate: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   try {
     if (!q) return reply("❌ Example: !calculate 5+5*2")
 
@@ -7040,7 +7077,7 @@ calculate: async () => {
 },
 
 math: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   try {
     if (!q) return reply("❌ Example: !math sin(90) + sqrt(16)")
 
@@ -7062,7 +7099,7 @@ math: async () => {
 // 🎮 FUN & GAMES COMMANDS
 
 truth: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const truths = [
     "What is your biggest fear?",
     "Who was your first crush?",
@@ -7082,7 +7119,7 @@ truth: async () => {
 },
 
 dare: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const dares = [
     "Send a funny selfie right now.",
     "Type using only emojis for 5 minutes.",
@@ -7102,7 +7139,7 @@ dare: async () => {
 },
 
 joke: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const jokes = [
     "😂 Why don’t skeletons fight each other? They don’t have the guts.",
     "😂 Why did the scarecrow win an award? Because he was outstanding in his field.",
@@ -7115,7 +7152,7 @@ joke: async () => {
 },
 
 quote: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const quotes = [
     "✨ Believe you can and you're halfway there.",
     "✨ Success is not final, failure is not fatal.",
@@ -7128,14 +7165,14 @@ quote: async () => {
 },
 
 ship: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const percent = Math.floor(Math.random() * 101)
 
   reply(`💘 *LOVE METER*\n\nYou two are *${percent}%* compatible ${percent > 70 ? "😍" : percent > 40 ? "🙂" : "😂"}`)
 },
 
 pair: async () => {
-  if (!isOwner) return reply("❌ Bot owner only")
+  if (!isOwner) return reply("❌ My owner only")
   if (!isGroup) return reply("❌ Group only")
 
   try {
@@ -7204,7 +7241,7 @@ ${result}
 },
 
 fact: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const facts = [
     "🧠 Honey never spoils.",
     "🧠 Octopuses have three hearts.",
@@ -7217,7 +7254,7 @@ fact: async () => {
 },
 
 riddle: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const riddles = [
     "❓ What has keys but can't open locks?\n\n💡 Answer: A piano.",
     "❓ What has hands but cannot clap?\n\n💡 Answer: A clock.",
@@ -7230,7 +7267,7 @@ riddle: async () => {
 },
 
 trivia: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const trivia = [
     "🌍 Which planet is known as the Red Planet?\n\n💡 Mars",
     "🌍 What is the capital of France?\n\n💡 Paris",
@@ -7243,24 +7280,241 @@ trivia: async () => {
 },
 
 guess: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const number = Math.floor(Math.random() * 10) + 1
 
   reply(`🎲 Guess a number between 1 - 10\n\n💡 Answer: ${number}`)
 },
 
 roll: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const dice = Math.floor(Math.random() * 6) + 1
 
   reply(`🎲 You rolled: *${dice}*`)
 },
 
 flip: async () => {
-   if (!isOwner) return reply("❌ Bot Owner only")
+   if (!isOwner) return reply("❌ My owner only")
   const coin = Math.random() < 0.5 ? "Heads 🪙" : "Tails 🪙"
 
   reply(`🪙 Coin Flip:\n*${coin}*`)
+},
+
+biblebook: async (args) => {
+  if (!isOwner) return reply("❌ My owner only")
+  try {
+    await react(sock, jid, msg.key, "📖")
+
+    const book = args?.join(" ")
+    if (!book) return reply("❌ Example: .biblebook john 3:16")
+
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(book)}`)
+    if (!res.ok) return reply("❌ Book not found")
+
+    const data = await res.json()
+
+    return sock.sendMessage(jid, {
+      text:
+`📖 *BIBLE STUDY*
+
+"${data.text}"
+
+— ${data.reference}`
+    }, { quoted: msg })
+
+  } catch (e) {
+    console.log("BIBLE BOOK ERROR:", e)
+    reply("❌ Failed to fetch Bible book")
+  }
+},
+
+bibleverse: async (args) => {
+  if (!isOwner) return reply("❌ My owner only")
+  try {
+    await react(sock, jid, msg.key, "🔍")
+
+    const query = args?.join(" ")
+    if (!query) return reply("❌ Example: .bibleverse john 3:16")
+
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
+    if (!res.ok) return reply("❌ Verse not found")
+
+    const data = await res.json()
+
+    return sock.sendMessage(jid, {
+      text:
+`📖 *BIBLE VERSE*
+
+"${data.text}"
+
+— ${data.reference}`
+    }, { quoted: msg })
+
+  } catch (e) {
+    console.log("BIBLE SEARCH ERROR:", e)
+    reply("❌ Failed to search verse")
+  }
+},
+
+setBibleDaily: async () => {
+  if (!isOwner) return reply("❌ My owner only")
+
+  reply("🌙 Daily Bible verse enabled (sends every 24h)")
+
+  setInterval(async () => {
+    try {
+      const res = await fetch("https://labs.bible.org/api/?passage=random&type=json")
+      const data = await res.json()
+      const verse = data?.[0]
+
+      if (!verse) return
+
+      await sock.sendMessage(jid, {
+        text:
+`🌙 *DAILY BIBLE VERSE*
+
+"${verse.text}"
+
+— ${verse.bookname} ${verse.chapter}:${verse.verse}
+
+🙏 Have a blessed day`
+      })
+
+    } catch (e) {
+      console.log("DAILY BIBLE ERROR:", e)
+    }
+  }, 24 * 60 * 60 * 1000)
+},
+
+bibleaudio: async (args) => {
+  if (!isOwner) return reply("❌ My owner only")
+  try {
+    await react(sock, jid, msg.key, "🎧")
+
+    const query = args?.join(" ")
+    if (!query) return reply("❌ Example: .bibleaudio psalm 23")
+
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
+    if (!res.ok) return reply("❌ Verse not found")
+
+    const data = await res.json()
+
+    const text = data.text
+
+    // 🗣️ Google TTS (simple audio)
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`
+
+    await sock.sendMessage(jid, {
+      audio: { url: audioUrl },
+      mimetype: "audio/mp4",
+      ptt: true
+    }, { quoted: msg })
+
+  } catch (e) {
+    console.log("BIBLE AUDIO ERROR:", e)
+    reply("❌ Failed to generate audio")
+  }
+},
+
+bibletopic: async (args) => {
+  if (!isOwner) return reply("❌ My owner only")
+
+  const topics = {
+    love: "1 Corinthians 13",
+    faith: "Hebrews 11:1",
+    strength: "Philippians 4:13",
+    fear: "2 Timothy 1:7",
+    hope: "Romans 15:13"
+  }
+
+  const topic = args?.[0]?.toLowerCase()
+  if (!topic || !topics[topic]) {
+    return reply("❌ Topics: love, faith, strength, fear, hope")
+  }
+
+  const res = await fetch(`https://bible-api.com/${topics[topic]}`)
+  const data = await res.json()
+
+  await sock.sendMessage(jid, {
+    text:
+`📖 *BIBLE TOPIC: ${topic.toUpperCase()}*
+
+"${data.text.trim()}"
+
+📌 ${data.reference}`
+  }, { quoted: msg })
+},
+
+bibleexplain: async (args) => {
+  if (!isOwner) return reply("❌ My owner only")
+  try {
+
+    const query = args?.join(" ")
+    if (!query) {
+      return reply("❌ Example: .bibleexplain john 3:16")
+    }
+
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
+    if (!res.ok) return reply("❌ Verse not found")
+
+    const data = await res.json()
+    const text = data.text.trim()
+
+    // 🧠 simple AI-style explanation (no external AI needed)
+    const explanation =
+`🧠 *VERSE EXPLANATION*
+
+📖 Verse:
+"${text}"
+
+📌 Meaning:
+This verse teaches about God's message in a simple form. It encourages reflection, faith, and understanding of spiritual truth.
+
+📚 Reference: ${data.reference}`
+
+    await sock.sendMessage(jid, { text: explanation }, { quoted: msg })
+
+  } catch (e) {
+    console.log("BIBLE EXPLAIN ERROR:", e)
+    reply("❌ Failed to explain verse")
+  }
+},
+
+bibledevotion: async () => {
+  if (!isOwner) return reply("❌ My owner only")
+  try {
+
+    const devotionals = [
+      {
+        title: "Trust in God",
+        text: "Trust in the Lord with all your heart and lean not on your own understanding."
+      },
+      {
+        title: "Be Strong",
+        text: "Be strong and courageous. Do not be afraid."
+      },
+      {
+        title: "God’s Love",
+        text: "Nothing can separate us from the love of God."
+      }
+    ]
+
+    const pick = devotionals[Math.floor(Math.random() * devotionals.length)]
+
+    await sock.sendMessage(jid, {
+      text:
+`🌅 *DAILY DEVOTIONAL*
+
+📌 ${pick.title}
+
+"${pick.text}"
+
+🙏 Meditate on this today.`
+    }, { quoted: msg })
+
+  } catch (e) {
+    console.log(e)
+  }
 },
 
       // ===== MENU =====
@@ -7399,7 +7653,7 @@ function getThemeLabel() {
 }
 
 
- if (!isOwner) return reply("❌ Owner only")
+ if (!isOwner) return reply("❌ My owner only")
   
 
   // 📜 MENU TEXT
@@ -7491,7 +7745,6 @@ return sock
 
 }
 }
-
 
 // =================  SESSION =================
 ;["session"].forEach(start)
