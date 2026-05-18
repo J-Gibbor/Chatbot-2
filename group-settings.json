@@ -102,5 +102,44 @@
     "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
     "welcomeImg": null,
     "goodbyeImg": null
+  },
+  "120363041859567557@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363372191772847@newsletter": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363411319617618@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
   }
 }

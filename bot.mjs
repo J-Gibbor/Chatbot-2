@@ -881,14 +881,6 @@ dict: "📖 𝙌𝙪𝙞𝙘𝙠 𝘿𝙞𝙘𝙩𝙞𝙤𝙣𝙖𝙧𝙮 𝙎�
   roll: "🎲 𝙍𝙤𝙡𝙡 𝙖 𝙙𝙞𝙘𝙚",
   flip: "🪙 𝙁𝙡𝙞𝙥 𝙖 𝙘𝙤𝙞𝙣",
 
-bibleverse: "🔍 𝙎𝙚𝙖𝙧𝙘𝙝 𝙖𝙣𝙮 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚 (𝙅𝙤𝙝𝙣 3:16)",
-biblebook: "📚 𝙍𝙚𝙖𝙙 𝘽𝙞𝙗𝙡𝙚 𝙗𝙤𝙤𝙠𝙨 & 𝙘𝙝𝙖𝙥𝙩𝙚𝙧𝙨",
-bibleaudio: "🎧 𝙇𝙞𝙨𝙩𝙚𝙣 𝙩𝙤 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
-bibletopic: "📌 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨 𝙗𝙮 𝙩𝙤𝙥𝙞𝙘 (𝙡𝙤𝙫𝙚, 𝙛𝙖𝙞𝙩𝙝)",
-setbibledaily: "🌙 𝘼𝙪𝙩𝙤-𝙨𝙚𝙣𝙙 𝙙𝙖𝙞𝙡𝙮 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
-bibleexplain: "🧠 𝙎𝙞𝙢𝙥𝙡𝙚 𝙚𝙭𝙥𝙡𝙖𝙣𝙖𝙩𝙞𝙤𝙣 𝙤𝙛 𝘽𝙞𝙗𝙡𝙚 𝙫𝙚𝙧𝙨𝙚𝙨",
-bibledevotion: "🌅 𝘿𝙖𝙞𝙡𝙮 𝙙𝙚𝙫𝙤𝙩𝙞𝙤𝙣 & 𝙞𝙣𝙨𝙥𝙞𝙧𝙖𝙩𝙞𝙤𝙣",
-
 }
 
 const menuHeaders = [
@@ -2225,14 +2217,6 @@ dict: "📖",
   guess: "🎲",
   roll: "🎲",
   flip: "🪙",
-
-  bibledevotion: "🌅",
-  bibleaudio: "🎧",
-  biblebook: "📖",
-  bibleexplain: "🧠",
-  bibletopic: "📚",
-  setBibleDaily: "📅",
-  bibleverse: "📜",
 
   // ⚙️ SYSTEM
   default: "⚡"
@@ -5803,7 +5787,6 @@ help: async () => {
 },
 
 runtime: async () => {
-  await react(sock, jid, msg.key, "⏱️")
 
   try {
     const uptime = process.uptime() // in seconds
@@ -5828,7 +5811,6 @@ runtime: async () => {
 
   } catch (err) {
     console.log("Runtime error:", err.message)
-    await react(sock, jid, msg.key, "❌")
     reply("❌ Failed to get runtime")
   }
 },
@@ -6147,7 +6129,6 @@ const langMap = {
       return reply("❌ Unsupported language code")
     }
 
-    await react(sock, jid, msg.key, "🌍")
 
     // ✅ WORKING ENDPOINT
    const res = await fetch(
@@ -6302,8 +6283,6 @@ dictionary: async () => {
         "📚 Enter a word to search\n\nExample:\n.dictionary wisdom"
       )
     }
-
-    await react(sock, jid, msg.key, "📚")
 
     // 🌍 Free Dictionary API
     const res = await fetch(
@@ -7298,223 +7277,6 @@ flip: async () => {
   const coin = Math.random() < 0.5 ? "Heads 🪙" : "Tails 🪙"
 
   reply(`🪙 Coin Flip:\n*${coin}*`)
-},
-
-biblebook: async (args) => {
-  if (!isOwner) return reply("❌ My owner only")
-  try {
-    await react(sock, jid, msg.key, "📖")
-
-    const book = args?.join(" ")
-    if (!book) return reply("❌ Example: .biblebook john 3:16")
-
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(book)}`)
-    if (!res.ok) return reply("❌ Book not found")
-
-    const data = await res.json()
-
-    return sock.sendMessage(jid, {
-      text:
-`📖 *BIBLE STUDY*
-
-"${data.text}"
-
-— ${data.reference}`
-    }, { quoted: msg })
-
-  } catch (e) {
-    console.log("BIBLE BOOK ERROR:", e)
-    reply("❌ Failed to fetch Bible book")
-  }
-},
-
-bibleverse: async (args) => {
-  if (!isOwner) return reply("❌ My owner only")
-  try {
-    await react(sock, jid, msg.key, "🔍")
-
-    const query = args?.join(" ")
-    if (!query) return reply("❌ Example: .bibleverse john 3:16")
-
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
-    if (!res.ok) return reply("❌ Verse not found")
-
-    const data = await res.json()
-
-    return sock.sendMessage(jid, {
-      text:
-`📖 *BIBLE VERSE*
-
-"${data.text}"
-
-— ${data.reference}`
-    }, { quoted: msg })
-
-  } catch (e) {
-    console.log("BIBLE SEARCH ERROR:", e)
-    reply("❌ Failed to search verse")
-  }
-},
-
-setBibleDaily: async () => {
-  if (!isOwner) return reply("❌ My owner only")
-
-  reply("🌙 Daily Bible verse enabled (sends every 24h)")
-
-  setInterval(async () => {
-    try {
-      const res = await fetch("https://labs.bible.org/api/?passage=random&type=json")
-      const data = await res.json()
-      const verse = data?.[0]
-
-      if (!verse) return
-
-      await sock.sendMessage(jid, {
-        text:
-`🌙 *DAILY BIBLE VERSE*
-
-"${verse.text}"
-
-— ${verse.bookname} ${verse.chapter}:${verse.verse}
-
-🙏 Have a blessed day`
-      })
-
-    } catch (e) {
-      console.log("DAILY BIBLE ERROR:", e)
-    }
-  }, 24 * 60 * 60 * 1000)
-},
-
-bibleaudio: async (args) => {
-  if (!isOwner) return reply("❌ My owner only")
-  try {
-    await react(sock, jid, msg.key, "🎧")
-
-    const query = args?.join(" ")
-    if (!query) return reply("❌ Example: .bibleaudio psalm 23")
-
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
-    if (!res.ok) return reply("❌ Verse not found")
-
-    const data = await res.json()
-
-    const text = data.text
-
-    // 🗣️ Google TTS (simple audio)
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`
-
-    await sock.sendMessage(jid, {
-      audio: { url: audioUrl },
-      mimetype: "audio/mp4",
-      ptt: true
-    }, { quoted: msg })
-
-  } catch (e) {
-    console.log("BIBLE AUDIO ERROR:", e)
-    reply("❌ Failed to generate audio")
-  }
-},
-
-bibletopic: async (args) => {
-  if (!isOwner) return reply("❌ My owner only")
-
-  const topics = {
-    love: "1 Corinthians 13",
-    faith: "Hebrews 11:1",
-    strength: "Philippians 4:13",
-    fear: "2 Timothy 1:7",
-    hope: "Romans 15:13"
-  }
-
-  const topic = args?.[0]?.toLowerCase()
-  if (!topic || !topics[topic]) {
-    return reply("❌ Topics: love, faith, strength, fear, hope")
-  }
-
-  const res = await fetch(`https://bible-api.com/${topics[topic]}`)
-  const data = await res.json()
-
-  await sock.sendMessage(jid, {
-    text:
-`📖 *BIBLE TOPIC: ${topic.toUpperCase()}*
-
-"${data.text.trim()}"
-
-📌 ${data.reference}`
-  }, { quoted: msg })
-},
-
-bibleexplain: async (args) => {
-  if (!isOwner) return reply("❌ My owner only")
-  try {
-
-    const query = args?.join(" ")
-    if (!query) {
-      return reply("❌ Example: .bibleexplain john 3:16")
-    }
-
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`)
-    if (!res.ok) return reply("❌ Verse not found")
-
-    const data = await res.json()
-    const text = data.text.trim()
-
-    // 🧠 simple AI-style explanation (no external AI needed)
-    const explanation =
-`🧠 *VERSE EXPLANATION*
-
-📖 Verse:
-"${text}"
-
-📌 Meaning:
-This verse teaches about God's message in a simple form. It encourages reflection, faith, and understanding of spiritual truth.
-
-📚 Reference: ${data.reference}`
-
-    await sock.sendMessage(jid, { text: explanation }, { quoted: msg })
-
-  } catch (e) {
-    console.log("BIBLE EXPLAIN ERROR:", e)
-    reply("❌ Failed to explain verse")
-  }
-},
-
-bibledevotion: async () => {
-  if (!isOwner) return reply("❌ My owner only")
-  try {
-
-    const devotionals = [
-      {
-        title: "Trust in God",
-        text: "Trust in the Lord with all your heart and lean not on your own understanding."
-      },
-      {
-        title: "Be Strong",
-        text: "Be strong and courageous. Do not be afraid."
-      },
-      {
-        title: "God’s Love",
-        text: "Nothing can separate us from the love of God."
-      }
-    ]
-
-    const pick = devotionals[Math.floor(Math.random() * devotionals.length)]
-
-    await sock.sendMessage(jid, {
-      text:
-`🌅 *DAILY DEVOTIONAL*
-
-📌 ${pick.title}
-
-"${pick.text}"
-
-🙏 Meditate on this today.`
-    }, { quoted: msg })
-
-  } catch (e) {
-    console.log(e)
-  }
 },
 
       // ===== MENU =====
