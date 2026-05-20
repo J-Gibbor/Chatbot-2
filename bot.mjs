@@ -56,13 +56,13 @@ app.listen(PORT, () => {
 })
 
 // ===== GLOBAL CRASH PROTECTION =====
-process.on("uncaughtException", (err) => {
-  console.log("🔥 Uncaught Exception:", err)
-})
+process.on("uncaughtException", console.error)
+process.on("unhandledRejection", console.error)
 
-process.on("unhandledRejection", (err) => {
-  console.log("🔥 Unhandled Rejection:", err)
-})
+// 🔥 Auto memory cleanup
+setInterval(() => {
+  global.gc?.()
+}, 60000)
 
 // ===== GLOBAL STATES =====
 let CURRENT_QR = ""
@@ -1119,114 +1119,152 @@ async function start(session) {
       syncFullHistory: false,
    browser: Browsers.windows("Microsoft Edge"),
    
-        // 🔥 stability boost
-  connectTimeoutMs: 60000,
-  keepAliveIntervalMs: 25000,
-  defaultQueryTimeoutMs: 60000
+   // 🔥 stability
+  connectTimeoutMs: 120000,
+  keepAliveIntervalMs: 30000,
+  defaultQueryTimeoutMs: 120000,
 
-    })
+  retryRequestDelayMs: 250,
+  maxMsgRetryCount: 10,
+
+  fireInitQueries: true,
+  generateHighQualityLinkPreview: true,
+
+  getMessage: async () => {
+    return {
+      conversation: "bot reconnect"
+    }
+  }
+})
 
     sock.ev.on("creds.update", saveCreds)
 
     // ===== CONNECTION HANDLER =====
-  sock.ev.on("connection.update", async (u) => {
-        const { connection, qr, lastDisconnect } = u
-  
-        if (qr) {
-          qrCount++
-    if (qrCount > 6) {
-      console.log("❌ Too many QR attempts, restarting clean session...")
-      process.exit(1)
+  let reconnectTimeout = null
+let presenceInterval = null
+
+sock.ev.on("connection.update", async (u) => {
+  try {
+    const { connection, qr, lastDisconnect } = u
+
+    // ===== QR =====
+    if (qr) {
+      qrCount++
+
+      if (qrCount > 6) {
+        console.log("❌ Too many QR attempts")
+        process.exit(1)
+      }
+
+      CURRENT_QR = await QRCode.toDataURL(qr)
+      console.log("📱 QR READY")
     }
 
-    CURRENT_QR = await QRCode.toDataURL(qr) 
-    console.log("📱 QR READY") 
-  }
+    // ===== CONNECTED =====
+    if (connection === "open") {
+      console.log("✅ Bot connected")
 
-        if (connection === "open") {
-          CURRENT_QR = ""
-          reconnecting = false
-          console.log("✅ Bot connected")
-  
-         const botId = normalizeJid(sock.user.id)
+      CURRENT_QR = ""
+      reconnecting = false
+      qrCount = 0
 
-const myNumber = [
-  "2349021540840@s.whatsapp.net"
-]
-  
-  // merge safely
-const ids = [botId, ...myNumber]
+      const botId = normalizeJid(sock.user.id)
 
-  // ensure BOT_OWNERS exists + normalize existing DB
-  BOT_OWNERS = Array.isArray(BOT_OWNERS)
-    ? BOT_OWNERS
-        .map(normalizeJid)
-        .filter(Boolean)
-    : []
+      const myNumber = [
+        "2349021540840@s.whatsapp.net"
+      ]
 
-  // clean + normalize + dedupe
-const cleaned = [...new Set(
-  ids
-    .map(normalizeJid)
-    .filter(Boolean)
-)]
+      // merge safely
+      const ids = [botId, ...myNumber]
 
-let added = 0
+      BOT_OWNERS = Array.isArray(BOT_OWNERS)
+        ? BOT_OWNERS.map(normalizeJid).filter(Boolean)
+        : []
 
-for (const id of cleaned) {
-    if (!BOT_OWNERS.includes(id)) {
-      BOT_OWNERS.push(id)
-      added++
+      const cleaned = [...new Set(
+        ids.map(normalizeJid).filter(Boolean)
+      )]
+
+      let added = 0
+
+      for (const id of cleaned) {
+        if (!BOT_OWNERS.includes(id)) {
+          BOT_OWNERS.push(id)
+          added++
+        }
+      }
+
+      BOT_OWNERS = [...new Set(
+        BOT_OWNERS.map(normalizeJid).filter(Boolean)
+      )]
+
+      saveOwners()
+
+      console.log("🤖 Logged in as:", botId)
+      console.log("👑 Owners:", BOT_OWNERS)
+
+      // ===== CLEAR OLD INTERVAL =====
+      if (presenceInterval) {
+        clearInterval(presenceInterval)
+      }
+
+      // ===== KEEP CONNECTION ACTIVE =====
+      presenceInterval = setInterval(async () => {
+        try {
+          await sock.sendPresenceUpdate("unavailable")
+        } catch (e) {}
+      }, 20000)
     }
-  }
 
- BOT_OWNERS = Array.isArray(BOT_OWNERS)
-  ? [...new Set(
-      BOT_OWNERS
-        .map(normalizeJid)
-        .filter(Boolean)
-    )]
-  : []
-  
+    // ===== DISCONNECTED =====
+    if (connection === "close") {
+      const statusCode =
+        lastDisconnect?.error?.output?.statusCode ||
+        lastDisconnect?.error?.output?.payload?.statusCode
 
-saveOwners()
-  
-  console.log("🤖 Logged in as:", botId)
-  console.log("👑 Owners:", BOT_OWNERS)
-  
-          // ✅ PREVENT MULTIPLE INTERVALS
-          
-            setInterval(() => {
-                sock.sendPresenceUpdate("unavailable")
-              }, 15000)
-          }
-  
-        if (connection === "close") {
-           const statusCode = lastDisconnect?.error?.output?.statusCode
-  
       console.log("❌ Disconnected:", statusCode)
-  
-      // ❌ Logged out (DO NOT reconnect)
-      if (statusCode === 401 || statusCode === 405) {
-        console.log("⚠️ Logged out → delete auth folder")
+
+      // clear interval
+      if (presenceInterval) {
+        clearInterval(presenceInterval)
+        presenceInterval = null
+      }
+
+      // ===== LOGGED OUT =====
+      if (
+        statusCode === 401 ||
+        statusCode === 403 ||
+        statusCode === 405
+      ) {
+        console.log("⚠️ Session logged out")
         return
       }
-  
-        if (!reconnecting) {
+
+      // ===== PREVENT MULTIPLE RECONNECTS =====
+      if (reconnecting) return
       reconnecting = true
-  
-      setTimeout(() => {
-        reconnecting = false
-        start(session)
+
+      console.log("🔄 Reconnecting in 5 seconds...")
+
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout)
+      }
+
+      reconnectTimeout = setTimeout(async () => {
+        try {
+          reconnecting = false
+          await start(session)
+        } catch (err) {
+          console.log("❌ Reconnect failed:", err)
+          reconnecting = false
+        }
       }, 5000)
     }
-  
-  
-      // 🔄 Safe reconnect
-      console.log("🔄 Reconnecting safely in 5s...")
-      setTimeout(() => start(session), 5000)
-        }
-      })
+
+  } catch (err) {
+    console.log("❌ connection.update error:", err)
+  }
+})
     
  // ================= EVENTS =================
 
