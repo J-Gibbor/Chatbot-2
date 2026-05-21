@@ -1130,11 +1130,6 @@ async function start(session) {
   fireInitQueries: true,
   generateHighQualityLinkPreview: true,
 
-  getMessage: async () => {
-    return {
-      conversation: "bot reconnect"
-    }
-  }
 })
 
     sock.ev.on("creds.update", saveCreds)
