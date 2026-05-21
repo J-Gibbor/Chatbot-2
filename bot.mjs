@@ -1117,7 +1117,7 @@ async function start(session) {
       markOnlineOnConnect: false,
       emitOwnEvents: true,
       syncFullHistory: false,
-   browser: Browsers.windows("Microsoft Edge"),
+   browser: Browsers.macOS("Desktop"),
    
    // 🔥 stability
   connectTimeoutMs: 120000,
@@ -1136,7 +1136,6 @@ async function start(session) {
 
     // ===== CONNECTION HANDLER =====
   let reconnectTimeout = null
-let presenceInterval = null
 
 sock.ev.on("connection.update", async (u) => {
   try {
@@ -1198,17 +1197,7 @@ sock.ev.on("connection.update", async (u) => {
       console.log("🤖 Logged in as:", botId)
       console.log("👑 Owners:", BOT_OWNERS)
 
-      // ===== CLEAR OLD INTERVAL =====
-      if (presenceInterval) {
-        clearInterval(presenceInterval)
-      }
-
       // ===== KEEP CONNECTION ACTIVE =====
-      presenceInterval = setInterval(async () => {
-        try {
-          await sock.sendPresenceUpdate("unavailable")
-        } catch (e) {}
-      }, 20000)
     }
 
     // ===== DISCONNECTED =====
@@ -1218,12 +1207,6 @@ sock.ev.on("connection.update", async (u) => {
         lastDisconnect?.error?.output?.payload?.statusCode
 
       console.log("❌ Disconnected:", statusCode)
-
-      // clear interval
-      if (presenceInterval) {
-        clearInterval(presenceInterval)
-        presenceInterval = null
-      }
 
       // ===== LOGGED OUT =====
       if (
@@ -1304,7 +1287,7 @@ const cleanSender = normalizeJid(sender)
 
 // 🔥 FORCE DM PUSH RECOGNITION
 if (isDM) {
-  await sock.sendPresenceUpdate("available", jid)
+  await sock.sendPresenceUpdate("unavailable", jid)
 }
 
 const body = (
