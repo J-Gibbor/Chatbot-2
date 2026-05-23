@@ -2477,7 +2477,7 @@ if (isDM) {
       payload
     )
 
-    // 💣 Delete command message after 4s
+    // 💣 Delete command message after 1s
     setTimeout(async () => {
       try {
         await sock.sendMessage(
@@ -2492,7 +2492,7 @@ if (isDM) {
           e
         )
       }
-    }, 4000)
+    }, 1000)
 
   } catch (e) {
     console.log(
