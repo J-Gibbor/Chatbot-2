@@ -2458,67 +2458,112 @@ if (isDM) {
       vv: async () => {
   if (!isOwner) return reply("❌ My owner only")
 
+  // 📩 Get quoted message
   const quoted =
-    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
+    msg.message?.extendedTextMessage
+      ?.contextInfo?.quotedMessage
 
   if (!quoted) {
-    return reply("❌ Reply to a view-once message")
+    return reply(
+      "❌ Reply to a view-once message"
+    )
   }
 
   try {
+
+    // 🔍 Detect actual media type
     const type = Object.keys(quoted)[0]
     const content = quoted[type]
 
-    if (!content) return reply("❌ Invalid message")
+    if (!content) {
+      return reply("❌ Invalid message")
+    }
 
-    const stream = await downloadContentFromMessage(
-      content,
-      type.replace("Message", "")
-    )
+    // 📥 Download media
+    const stream =
+      await downloadContentFromMessage(
+        content,
+        type.replace("Message", "")
+      )
 
     let buffer = Buffer.from([])
 
     for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, chunk])
+      buffer = Buffer.concat([
+        buffer,
+        chunk
+      ])
     }
 
+    // 📝 Preserve caption/text
     const caption =
       content.caption ||
       content.text ||
       "👁️ View-once recovered"
 
+    // 📤 Detect send type
     let payload = {}
 
     if (type === "imageMessage") {
-      payload = { image: buffer, caption }
+      payload = {
+        image: buffer,
+        caption
+      }
 
-    } else if (type === "videoMessage") {
-      payload = { video: buffer, caption }
+    } else if (
+      type === "videoMessage"
+    ) {
+      payload = {
+        video: buffer,
+        caption
+      }
 
-    } else if (type === "audioMessage") {
+    } else if (
+      type === "audioMessage"
+    ) {
       payload = {
         audio: buffer,
-        mimetype: content.mimetype || "audio/mp4",
+        mimetype:
+          content.mimetype ||
+          "audio/mp4",
         ptt: content.ptt || false
       }
 
     } else {
+      // 📄 Fallback for docs
       payload = {
         document: buffer,
-        mimetype: content.mimetype || "application/octet-stream",
-        fileName: content.fileName || "view_once_file"
+        mimetype:
+          content.mimetype ||
+          "application/octet-stream",
+        fileName:
+          content.fileName ||
+          "view_once_file"
       }
     }
 
-    // 📤 send to owner first
-    const sent = await sock.sendMessage(sender, payload)
+    // 📬 Send privately to owner
+    await sock.sendMessage(
+      sender,
+      payload
+    )
 
-    // 💣 DELETE COMMAND ONLY AFTER SUCCESS SEND
-    if (sent) {
-      await sock.sendMessage(jid, {
-        delete: msg.key
-      })
-    }
+    // 💣 Delete command message after 1s
+    setTimeout(async () => {
+      try {
+        await sock.sendMessage(
+          jid,
+          {
+            delete: msg.key
+          }
+        )
+      } catch (e) {
+        console.log(
+          "VV command delete failed:",
+          e
+        )
+      }
+    }, 1000)
 
   } catch (e) {
     console.log("VV error:", e)
