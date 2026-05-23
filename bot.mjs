@@ -2667,41 +2667,87 @@ viewonce: async () => {
   }
 },
 
-      pp: async () => {
+pp: async () => {
   if (!isOwner) return reply("❌ My owner only")
 
-  let target = getTarget() || sender
+  // 🔥 SUPER SAFE CONTEXT EXTRACTOR (BAILEYS FIXED)
+  const getContext = (msg) =>
+    msg.message?.extendedTextMessage?.contextInfo ||
+    msg.message?.imageMessage?.contextInfo ||
+    msg.message?.videoMessage?.contextInfo ||
+    msg.message?.documentMessage?.contextInfo ||
+    msg.message?.buttonsMessage?.contextInfo ||
+    msg.message?.listResponseMessage?.contextInfo ||
+    msg.message?.messageContextInfo ||
+    {}
+
+  // 🔥 REPLY HANDLER (GROUP SAFE)
+  const getReply = (msg) => {
+    return getContext(msg).participant || null
+  }
+
+  // 🔥 MENTION HANDLER (100% GROUP SAFE)
+  const getMentions = (msg) => {
+    return getContext(msg).mentionedJid || []
+  }
+
+  let target
+
+  // 1. NUMBER INPUT
+  if (args[0]) {
+    const number = args[0].replace(/\D/g, "")
+    target = number + "@s.whatsapp.net"
+  }
+
+  // 2. REPLY
+  else if (getReply(msg)) {
+    target = getReply(msg)
+  }
+
+  // 3. MENTION (GROUP FIXED)
+  else if (getMentions(msg).length > 0) {
+    target = getMentions(msg)[0]
+  }
+
+  // 4. FALLBACK (IMPORTANT FIX)
+  else {
+    target = msg.key?.participant || msg.key?.remoteJid || sender
+  }
 
   try {
-    const url = await sock.profilePictureUrl(target, "image")
+    let url
 
-    const sent = await sock.sendMessage(sender, {
+    try {
+      url = await sock.profilePictureUrl(target, "image")
+    } catch (e) {
+      return reply("❌ User has no profile picture or it is private.")
+    }
+
+    // 🔥 CLEAN NUMBER (NO JID)
+    const number = target.split("@")[0].replace(/\D/g, "")
+
+    await sock.sendMessage(sender, {
       image: { url },
-      caption: "🖼️ Profile picture HD"
+      caption:
+`🖼️ Profile Picture extracted
+
+📱 Number: +${number}`
     })
 
-    // // 💣 delete result after 15s
-    // setTimeout(async () => {
-    //   try {
-    //     await sock.sendMessage(sender, { delete: sent.key })
-    //   } catch (e) {
-    //     console.log("PP result delete failed:", e)
-    //   }
-    // }, 15000)
-
-    // 💣 delete command message
+    // 🗑️ delete command message
     setTimeout(async () => {
       try {
         await sock.sendMessage(sender, {
           delete: msg.key
         })
       } catch (e) {
-        console.log("PP command delete failed:", e)
+        console.log("PP delete failed:", e)
       }
     }, 2000)
 
-  } catch {
-    reply("❌ Cannot fetch profile picture")
+  } catch (err) {
+    console.log("PP Error:", err)
+    reply("❌ Failed to fetch profile picture")
   }
 },
 

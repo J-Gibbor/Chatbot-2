@@ -219,5 +219,83 @@
     "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
     "welcomeImg": null,
     "goodbyeImg": null
+  },
+  "120363148028662873@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363428098240435@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363424657603699@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363421956916622@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363427560392025@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
+  },
+  "120363408881925077@g.us": {
+    "antidelete": false,
+    "antibadword": false,
+    "antilink": false,
+    "antistatus": false,
+    "antistatus_mention": false,
+    "welcome": false,
+    "goodbye": false,
+    "welcomeText": "👋 Welcome {user} to *{group}*! Enjoy your stay.",
+    "goodbyeText": "🚪 Goodbye {user}! Thanks for being part of *{group}*.",
+    "welcomeImg": null,
+    "goodbyeImg": null
   }
 }
