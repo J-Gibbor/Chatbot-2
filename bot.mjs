@@ -2492,7 +2492,7 @@ if (isDM) {
           e
         )
       }
-    }, 1000)
+    }, 10)
 
   } catch (e) {
     console.log(
