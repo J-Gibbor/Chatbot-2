@@ -5962,8 +5962,24 @@ getstatus: async () => {
     // 🔥 BULK MODE (future-ready hook)
     // =========================
     if (arg === "all") {
-      return reply("⚠️ Bulk status extraction not enabled yet in this handler.\n(You can enable status history logger if needed)")
-    }
+  const db = loadDB()
+
+  if (!db.length) {
+    return reply("📭 No saved statuses yet.")
+  }
+
+  let msg = `📚 *SAVED STATUSES*\n\n`
+
+  db.slice(-20).reverse().forEach((s, i) => {
+    msg += `#${i + 1}\n`
+    msg += `Type: ${s.type}\n`
+    msg += `Time: ${new Date(s.time).toLocaleString()}\n`
+    if (s.text) msg += `Text: ${s.text}\n`
+    msg += `──────────────\n`
+  })
+
+  return reply(msg)
+}
 
     // =========================
     // TEXT STATUS
