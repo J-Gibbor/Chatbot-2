@@ -599,7 +599,7 @@ const PREMIUM_MENU_SECTIONS = {
      "statuslist",
   "autostatus",
   "statusfilter",
-  "statusclear",
+  "clearstatus",
   ],
 
   "👑 OWNER": [
@@ -777,7 +777,7 @@ viewonce: "👁️ 𝘾𝙤𝙣𝙫𝙚𝙧𝙩 𝙑𝙞𝙚𝙬-𝙊𝙣𝙘�
   statussave: "📥 𝘼𝙪𝙩𝙤 𝙎𝙩𝙖𝙩𝙪𝙨 𝙎𝙖𝙫𝙚𝙧 (𝙄𝙢𝙖𝙜𝙚 / 𝙑𝙞𝙙𝙚𝙤 / 𝘼𝙪𝙙𝙞𝙤)",
 statuslist: "📚 𝙑𝙞𝙚𝙬 𝙎𝙖𝙫𝙚𝙙 𝙎𝙩𝙖𝙩𝙪𝙨𝙚𝙨",
 statusfilter: "👥 𝘾𝙤𝙣𝙩𝙖𝙘𝙩-𝘽𝙖𝙨𝙚𝙙 𝙁𝙞𝙡𝙩𝙚𝙧 (𝙋𝙧𝙞𝙫𝙖𝙩𝙚 𝙎𝙩𝙖𝙩𝙪𝙨 𝙎𝙖𝙫𝙚𝙧)",
-statusclear: "🧹 𝘾𝙡𝙚𝙖𝙧 𝙎𝙖𝙫𝙚𝙙 𝙎𝙩𝙖𝙩𝙪𝙨𝙚𝙨",
+clearstatus: "🧹 𝘾𝙡𝙚𝙖𝙧 𝙎𝙖𝙫𝙚𝙙 𝙎𝙩𝙖𝙩𝙪𝙨𝙚𝙨",
 autostatus: "⚙️ 𝙏𝙤𝙜𝙜𝙡𝙚 𝘼𝙪𝙩𝙤 𝙎𝙩𝙖𝙩𝙪𝙨 𝙎𝙖𝙫𝙚 (𝙊𝙉/𝙊𝙁𝙁)",
 
   // 👑 OWNER
@@ -969,6 +969,7 @@ const STORE_FILE = "./msg-store.json"
 const OWNERS_FILE = "./owners.json"
 const SETTINGS_FILE = "./settings.json"
 const WELCOME_DB_FILE = "./database/welcome.json"
+const STATUS_DB = "./status_db.json"
 
 function saveWelcomeDB(data) {
   try {
@@ -1004,6 +1005,30 @@ function loadWelcomeDB() {
   }
 }
 
+function loadDB() {
+  if (!fs.existsSync(STATUS_DB)) return []
+  return JSON.parse(fs.readFileSync(STATUS_DB))
+}
+
+function saveDB(data) {
+  fs.writeFileSync(STATUS_DB, JSON.stringify(data, null, 2))
+}
+
+// 🔥 PUT IT HERE (GLOBAL HELPER)
+function logStatus(entry, msg) {
+  const db = loadDB()
+
+  db.push({
+    id: Date.now(),
+    from: msg.key?.participant || msg.key?.remoteJid,
+    type: entry.type,
+    text: entry.text || null,
+    media: entry.media || null,
+    time: new Date().toISOString()
+  })
+
+  saveDB(db)
+}
 
 // Optional save function
 const saveGroupSchedules = () => {
@@ -2137,7 +2162,7 @@ viewonce: "👁️",
   statuslist: "📚",
   autostatus: "⚙️",
   statusfilter: "👥",
-  statusclear: "🧹",
+  clearstatus: "🧹",
 
   // 👑 OWNER
   addowner: "👑",
@@ -5909,31 +5934,58 @@ ping: async () => {
 // ============= STATUS FETCH =============
 getstatus: async () => {
   if (!isOwner) return reply("❌ My owner only")
-  try {
-    const quoted =
-      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-      msg.message?.imageMessage?.contextInfo?.quotedMessage ||
-      msg.message?.videoMessage?.contextInfo?.quotedMessage
 
-    if (!quoted) {
+  try {
+    const ctx =
+      msg.message?.extendedTextMessage?.contextInfo ||
+      msg.message?.imageMessage?.contextInfo ||
+      msg.message?.videoMessage?.contextInfo ||
+      {}
+
+    const quoted = ctx.quotedMessage
+
+    const arg = (args?.[0] || "").toLowerCase()
+
+    // 🔥 DIRECT STATUS MODE (when message is status broadcast)
+    const isDirectStatus = msg.key?.remoteJid === "status@broadcast"
+
+    // 🔥 TARGET MESSAGE RESOLVER
+    const target = isDirectStatus ? msg.message : quoted
+
+    if (!target && arg !== "all") {
       return reply(
-        "❌ Reply to a WhatsApp status (image/video/text) with .getstatus"
+        "❌ Reply to a status OR use:\n!getstatus all"
       )
     }
 
-    // ===== STATUS TEXT =====
-    if (quoted.conversation) {
-      return reply(`📥 STATUS TEXT:\n\n${quoted.conversation}`)
+    // =========================
+    // 🔥 BULK MODE (future-ready hook)
+    // =========================
+    if (arg === "all") {
+      return reply("⚠️ Bulk status extraction not enabled yet in this handler.\n(You can enable status history logger if needed)")
     }
 
-    if (quoted.extendedTextMessage?.text) {
-      return reply(`📥 STATUS TEXT:\n\n${quoted.extendedTextMessage.text}`)
+    // =========================
+    // TEXT STATUS
+    // =========================
+    const text =
+      target?.conversation ||
+      target?.extendedTextMessage?.text
+
+    if (text) {
+        logStatus(
+      { type: "text", text: text },
+      msg
+    )
+      return reply(`📥 STATUS TEXT:\n\n${text}`)
     }
 
-    // ===== STATUS IMAGE =====
-    if (quoted.imageMessage) {
+    // =========================
+    // IMAGE STATUS
+    // =========================
+    if (target?.imageMessage) {
       const stream = await downloadContentFromMessage(
-        quoted.imageMessage,
+        target.imageMessage,
         "image"
       )
 
@@ -5942,22 +5994,29 @@ getstatus: async () => {
         buffer = Buffer.concat([buffer, chunk])
       }
 
-      await sock.sendMessage(
+        logStatus(
+    { type: "image", media: "image_saved" },
+    msg
+  )
+
+      return await sock.sendMessage(
         jid,
         {
           image: buffer,
-          caption: quoted.imageMessage.caption || "📥 Extracted status image"
+          caption:
+            target.imageMessage.caption ||
+            "📥 Extracted status image"
         },
         { quoted: msg }
       )
-
-      return
     }
 
-    // ===== STATUS VIDEO =====
-    if (quoted.videoMessage) {
+    // =========================
+    // VIDEO STATUS
+    // =========================
+    if (target?.videoMessage) {
       const stream = await downloadContentFromMessage(
-        quoted.videoMessage,
+        target.videoMessage,
         "video"
       )
 
@@ -5966,19 +6025,24 @@ getstatus: async () => {
         buffer = Buffer.concat([buffer, chunk])
       }
 
-      await sock.sendMessage(
+        logStatus(
+  { type: "video", media: "video_saved" },
+  msg
+)
+
+      return await sock.sendMessage(
         jid,
         {
           video: buffer,
-          caption: quoted.videoMessage.caption || "📥 Extracted status video"
+          caption:
+            target.videoMessage.caption ||
+            "📥 Extracted status video"
         },
         { quoted: msg }
       )
-
-      return
     }
 
-    return reply("❌ Unsupported status type")
+    return reply("❌ Status expired or unsupported type")
 
   } catch (e) {
     console.log("GETSTATUS ERROR:", e)
@@ -5986,20 +6050,28 @@ getstatus: async () => {
     return reply(
 `❌ Failed to extract status
 
-Reason:
-${e.message || "Unknown error"}`
+Reason: ${e.message || "Unknown error"}`
     )
   }
 },
 
 statuslist: async () => {
-   if (!isOwner) return reply("❌ My owner only")
-  if (!global.STATUS_DB?.length) return reply("📭 No saved statuses")
+  if (!isOwner) return reply("❌ My owner only")
 
-  let text = "📚 *SAVED STATUSES*\n\n"
+  const db = loadDB()
 
-  global.STATUS_DB.forEach((s, i) => {
-    text += `${i + 1}. ${s.type.toUpperCase()} - ${new Date(s.time).toLocaleString()}\n`
+  if (!db.length) {
+    return reply("📭 No saved statuses yet.")
+  }
+
+  let text = `📚 SAVED STATUSES:\n\n`
+
+  db.slice(-10).reverse().forEach((s, i) => {
+    text += `#${i + 1}\n`
+    text += `Type: ${s.type}\n`
+    text += `Time: ${new Date(s.time).toLocaleString()}\n`
+    if (s.text) text += `Text: ${s.text}\n`
+    text += `──────────────\n`
   })
 
   return reply(text)
@@ -6030,11 +6102,10 @@ statusfilter: async () => {
   return reply(`👥 Added to allowed list: ${number}`)
 },
 
-statusclear: async () => {
-   if (!isOwner) return reply("❌ My owner only")
-  global.STATUS_DB = []
-  global.STATUS_HASH = new Set()
-  return reply("🧹 All saved statuses cleared")
+clearstatus: async () => {
+  if (!isOwner) return reply("❌ My owner only")
+  saveDB([])
+  return reply("✅ Status history cleared")
 },
 
 translate: async () => {
