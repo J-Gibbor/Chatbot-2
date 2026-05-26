@@ -30,7 +30,7 @@ const app = express()
 const logger = pino({ level : "silent"})
 
 // Use host-provided port OR fallback to 3000
-const PORT = process.env.PORT || 20259
+const PORT = process.env.PORT || 21045
 
  let qrCount = 0
 
