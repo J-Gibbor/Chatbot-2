@@ -1190,7 +1190,7 @@ sock.ev.on("connection.update", async (u) => {
       const botId = normalizeJid(sock.user.id)
 
       const myNumber = [
-        "2347044625110@s.whatsapp.net"
+        "2349021540840@s.whatsapp.net"
       ]
 
       // merge safely
